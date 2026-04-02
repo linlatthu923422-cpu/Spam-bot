@@ -31,7 +31,7 @@ async def auto_delete(msg, delay=3):
         pass
 
 # ================= ADD =================
-@app.on_message(filters.command("Addatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("addatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def add_atk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -43,7 +43,7 @@ async def add_atk(client, message):
         await auto_delete(m)
         await message.delete()
 
-@app.on_message(filters.command("Addtag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("addtag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def add_tag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -56,7 +56,7 @@ async def add_tag(client, message):
         await message.delete()
 
 # ================= LIST =================
-@app.on_message(filters.command("Atklist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atklist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atklist(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -66,7 +66,7 @@ async def atklist(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Taglist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("taglist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def taglist(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -77,7 +77,7 @@ async def taglist(client, message):
     await message.delete()
 
 # ================= DELETE =================
-@app.on_message(filters.command("Dlatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("dlatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def dlatk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -89,7 +89,7 @@ async def dlatk(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Dltag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("dltag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def dltag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -102,7 +102,7 @@ async def dltag(client, message):
     await message.delete()
 
 # ================= SPEED =================
-@app.on_message(filters.command("Atksp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atksp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atksp(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -113,7 +113,7 @@ async def atksp(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Tagsp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("tagsp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def tagsp(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -125,7 +125,7 @@ async def tagsp(client, message):
     await message.delete()
 
 # ================= ATK =================
-@app.on_message(filters.command("Atk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -146,7 +146,7 @@ async def atk(client, message):
                 break
 
 # ================= TAG =================
-@app.on_message(filters.command("Tag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("tag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def tag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -172,7 +172,7 @@ async def tag(client, message):
                 break
 
 # ================= STOP =================
-@app.on_message(filters.command("Stop") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("stop") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def stop(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -186,7 +186,7 @@ async def stop(client, message):
     await message.delete()
 
 # =============== AddAdmin ===============
-@app.on_message(filters.command("Addadmin") & filters.group & filters.user(OWNER_ID))
+@app.on_message(filters.command("addadmin") & filters.group & filters.user(OWNER_ID))
 async def add_admin(client, message):
     if not message.reply_to_message:
         return await message.reply("သခင်လေးကိုreplyပေးပါ")
@@ -197,7 +197,7 @@ async def add_admin(client, message):
     await message.delete()
 
 # =============== Dladmin ================
-@app.on_message(filters.command("Dladmin") & filters.group & filters.user(OWNER_ID))
+@app.on_message(filters.command("dladmin") & filters.group & filters.user(OWNER_ID))
 async def dl_admin(client, message):
     if not message.reply_to_message:
         return await message.reply("replyအသုံပြုပါ")
@@ -211,7 +211,7 @@ async def dl_admin(client, message):
     await message.delete()
 
 # ============== Adminlist ===============
-@app.on_message(filters.command("Adminlist") & filters.group & filters.user(OWNER_ID))
+@app.on_message(filters.command("adminlist") & filters.group & filters.user(OWNER_ID))
 async def admin_list(client, message):
     if not BOT_ADMINS:
         m = await message.reply("မရှိသေးပါ")
@@ -225,7 +225,7 @@ async def admin_list(client, message):
     await message.delete()
 
 # ================= START =================
-@app.on_message(filters.command("Start"))
+@app.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply("သခင်လေး @Nonfkchalant_Johan ဆီမှခွင့်ပြုချက်ရလျှင်အသုံးပြုနိုင်ပါပြီ။")
 
