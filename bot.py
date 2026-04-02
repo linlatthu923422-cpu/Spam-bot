@@ -1,4 +1,5 @@
 import os
+import random
 import asyncio
 from pyrogram import Client, filters
 
@@ -16,8 +17,8 @@ app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 atk_list = []
 tag_list = []
 
-atk_speed = 0.3
-tag_speed = 0.3
+atk_speed = (0.3, 0.3)
+tag_speed = (0.3, 0.3)
 
 running_atk = False
 running_tag = False
@@ -106,10 +107,21 @@ async def atksp(client, message):
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
         return
     global atk_speed
-    atk_speed = float(message.command[1])
+    try:
+        val = message.command[1]
+
+        if "-" in val:
+            min_sp, max_sp = map(float, val.split("-"))
+            atk_speed = (min_sp, max_sp)
+        else:
+            sp = float(val)
+            atk_speed = (sp, sp)
     m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
     await auto_delete(m)
     await message.delete()
+
+except:
+        await message.reply("Usage: /atksp 0.1-0.8")
 
 @app.on_message(filters.command("tagsp") & filters.group)
 async def tagsp(client, message):
@@ -117,10 +129,22 @@ async def tagsp(client, message):
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
         return
     global tag_speed
-    tag_speed = float(message.command[1])
+    try:
+        val = message.command[1]
+
+        if "-" in val:
+            min_sp, max_sp = map(float, val.split("-"))
+            tag_speed = (min_sp, max_sp)
+        else:
+            sp = float(val)
+            tag_speed = (sp, sp)
+            
     m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
     await auto_delete(m)
     await message.delete()
+    
+except:
+        await message.reply("Usage: /tagsp 0.1-0.8")
 
 # ================= ATK =================
 @app.on_message(filters.command("atk") & filters.group)
