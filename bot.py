@@ -31,7 +31,7 @@ async def auto_delete(msg, delay=3):
         pass
 
 # ================= ADD =================
-@app.on_message(filters.command("addatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("addatk") & filters.group)
 async def add_atk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -43,7 +43,7 @@ async def add_atk(client, message):
         await auto_delete(m)
         await message.delete()
 
-@app.on_message(filters.command("addtag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("addtag") & filters.group)
 async def add_tag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -56,7 +56,7 @@ async def add_tag(client, message):
         await message.delete()
 
 # ================= LIST =================
-@app.on_message(filters.command("atklist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atklist") & filters.group)
 async def atklist(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -66,7 +66,7 @@ async def atklist(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("taglist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("taglist") & filters.group)
 async def taglist(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -77,7 +77,7 @@ async def taglist(client, message):
     await message.delete()
 
 # ================= DELETE =================
-@app.on_message(filters.command("dlatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("dlatk") & filters.group)
 async def dlatk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -89,7 +89,7 @@ async def dlatk(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("dltag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("dltag") & filters.group)
 async def dltag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -102,7 +102,7 @@ async def dltag(client, message):
     await message.delete()
 
 # ================= SPEED =================
-@app.on_message(filters.command("atksp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atksp") & filters.group)
 async def atksp(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -113,7 +113,7 @@ async def atksp(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("tagsp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("tagsp") & filters.group)
 async def tagsp(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -125,7 +125,7 @@ async def tagsp(client, message):
     await message.delete()
 
 # ================= ATK =================
-@app.on_message(filters.command("atk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("atk") & filters.group)
 async def atk(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -146,7 +146,7 @@ async def atk(client, message):
                 break
 
 # ================= TAG =================
-@app.on_message(filters.command("tag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("tag") & filters.group)
 async def tag(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
@@ -172,7 +172,7 @@ async def tag(client, message):
                 break
 
 # ================= STOP =================
-@app.on_message(filters.command("stop") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
+@app.on_message(filters.command("stop") & filters.group)
 async def stop(client, message):
     if message.from_user.id not in BOT_ADMINS:
         m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
