@@ -193,7 +193,6 @@ async def add_admin(client, message):
     user = message.reply_to_message.from_user
     BOT_ADMINS.add(user.id)
     m = await message.reply(f"{user.first_name} အသုံးပြုနိုင်ပါပြီသခင်")
-    await auto_delete(m)
     await message.delete()
 
 # =============== Dladmin ================
@@ -207,7 +206,6 @@ async def dl_admin(client, message):
         m = await message.reply(f"{user.first_name} အသုံးပြုဖို့ခွင့်မပြုတော့ဘူး")
     else:
         m = await message.reply("User is not an admin")
-    await auto_delete(m)
     await message.delete()
 
 # ============== Adminlist ===============
@@ -215,13 +213,11 @@ async def dl_admin(client, message):
 async def admin_list(client, message):
     if not BOT_ADMINS:
         m = await message.reply("မရှိသေးပါ")
-        await auto_delete(m)
         return
     txt = ""
     for uid in BOT_ADMINS:
         txt += f"<a href='tg://user?id={uid}'>• {uid}</a>\n"
     m = await message.reply(txt, disable_web_page_preview=True)
-    await auto_delete(m)
     await message.delete()
 
 # ================= START =================
