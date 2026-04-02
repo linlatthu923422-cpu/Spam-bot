@@ -6,6 +6,10 @@ API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+OWNER_ID = 123456789  # <-- မင်း Telegram ID
+BOT_ADMINS = set()
+BOT_ADMINS.add(OWNER_ID)  # Owner is auto admin
+
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # ================= DATA =================
