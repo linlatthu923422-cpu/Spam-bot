@@ -63,7 +63,6 @@ async def atklist(client, message):
         return
     txt = "\n".join(atk_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
-    await auto_delete(m)
     await message.delete()
 
 @app.on_message(filters.command("taglist") & filters.group)
@@ -73,7 +72,6 @@ async def taglist(client, message):
         return
     txt = "\n".join(tag_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
-    await auto_delete(m)
     await message.delete()
 
 # ================= DELETE =================
