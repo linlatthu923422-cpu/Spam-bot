@@ -31,7 +31,7 @@ async def auto_delete(msg, delay=3):
         pass
 
 # ================= ADD =================
-@app.on_message(filters.command("Addatk") & filters.group)
+@app.on_message(filters.command("Addatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def add_atk(client, message):
     text = " ".join(message.command[1:])
     if text:
@@ -40,7 +40,7 @@ async def add_atk(client, message):
         await auto_delete(m)
         await message.delete()
 
-@app.on_message(filters.command("Addtag") & filters.group)
+@app.on_message(filters.command("Addtag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def add_tag(client, message):
     text = " ".join(message.command[1:])
     if text:
@@ -50,14 +50,14 @@ async def add_tag(client, message):
         await message.delete()
 
 # ================= LIST =================
-@app.on_message(filters.command("Atklist") & filters.group)
+@app.on_message(filters.command("Atklist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atklist(client, message):
     txt = "\n".join(atk_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Taglist") & filters.group)
+@app.on_message(filters.command("Taglist") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def taglist(client, message):
     txt = "\n".join(tag_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
@@ -65,7 +65,7 @@ async def taglist(client, message):
     await message.delete()
 
 # ================= DELETE =================
-@app.on_message(filters.command("Dlatk") & filters.group)
+@app.on_message(filters.command("Dlatk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def dlatk(client, message):
     text = " ".join(message.command[1:])
     if text in atk_list:
@@ -74,7 +74,7 @@ async def dlatk(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Dltag") & filters.group)
+@app.on_message(filters.command("Dltag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def dltag(client, message):
     text = " ".join(message.command[1:])
     if text in tag_list:
@@ -84,7 +84,7 @@ async def dltag(client, message):
     await message.delete()
 
 # ================= SPEED =================
-@app.on_message(filters.command("Atksp") & filters.group)
+@app.on_message(filters.command("Atksp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atksp(client, message):
     global atk_speed
     atk_speed = float(message.command[1])
@@ -92,7 +92,7 @@ async def atksp(client, message):
     await auto_delete(m)
     await message.delete()
 
-@app.on_message(filters.command("Tagsp") & filters.group)
+@app.on_message(filters.command("Tagsp") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def tagsp(client, message):
     global tag_speed
     tag_speed = float(message.command[1])
@@ -101,7 +101,7 @@ async def tagsp(client, message):
     await message.delete()
 
 # ================= ATK =================
-@app.on_message(filters.command("Atk") & filters.group)
+@app.on_message(filters.command("Atk") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def atk(client, message):
     global running_atk
     running_atk = True
@@ -119,7 +119,7 @@ async def atk(client, message):
                 break
 
 # ================= TAG =================
-@app.on_message(filters.command("Tag") & filters.group)
+@app.on_message(filters.command("Tag") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def tag(client, message):
     global running_tag
     running_tag = True
@@ -142,7 +142,7 @@ async def tag(client, message):
                 break
 
 # ================= STOP =================
-@app.on_message(filters.command("Stop") & filters.group)
+@app.on_message(filters.command("Stop") & filters.group & filters.user(lambda uid: uid in BOT_ADMINS))
 async def stop(client, message):
     global running_atk, running_tag
     running_atk = False
@@ -155,6 +155,6 @@ async def stop(client, message):
 # ================= START =================
 @app.on_message(filters.command("Start"))
 async def start(client, message):
-    await message.reply("စတင်နေပါပြီ")
+    await message.reply("သခင်လေး @Nonfkchalant_Johan ဆီမှခွင့်ပြုချက်ရလျှင်အသုံးပြုနိုင်ပါပြီ။")
 
 app.run()
