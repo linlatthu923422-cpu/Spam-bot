@@ -116,11 +116,11 @@ async def atksp(client, message):
         else:
             sp = float(val)
             atk_speed = (sp, sp)
-    m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
-    await auto_delete(m)
-    await message.delete()
+        m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
+        await auto_delete(m)
+        await message.delete()
 
-except:
+    except:
         await message.reply("Usage: /atksp 0.1-0.8")
 
 @app.on_message(filters.command("tagsp") & filters.group)
@@ -139,11 +139,11 @@ async def tagsp(client, message):
             sp = float(val)
             tag_speed = (sp, sp)
             
-    m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
-    await auto_delete(m)
-    await message.delete()
+        m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
+        await auto_delete(m)
+        await message.delete()
     
-except:
+    except:
         await message.reply("Usage: /tagsp 0.1-0.8")
 
 # ================= ATK =================
