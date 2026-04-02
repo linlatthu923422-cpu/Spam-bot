@@ -163,7 +163,7 @@ async def atk(client, message):
                 break
             try:
                 await message.reply(text)
-                await asyncio.sleep(atk_speed)
+                await asyncio.sleep(random.uniform(atk_speed[0], atk_speed[1]))
             except:
                 break
 
@@ -189,7 +189,7 @@ async def tag(client, message):
                 break
             try:
                 await message.reply(f"{user.mention} {text}")
-                await asyncio.sleep(tag_speed)
+                await asyncio.sleep(random.uniform(tag_speed[0], tag_speed[1]))
             except:
                 break
 
