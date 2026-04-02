@@ -185,6 +185,45 @@ async def stop(client, message):
     await auto_delete(m)
     await message.delete()
 
+# =============== AddAdmin ===============
+@app.on_message(filters.command("Addadmin") & filters.group & filters.user(OWNER_ID))
+async def add_admin(client, message):
+    if not message.reply_to_message:
+        return await message.reply("သခင်လေးကိုreplyပေးပါ")
+    user = message.reply_to_message.from_user
+    BOT_ADMINS.add(user.id)
+    m = await message.reply(f"{user.first_name} အသုံးပြုနိုင်ပါပြီသခင်")
+    await auto_delete(m)
+    await message.delete()
+
+# =============== Dladmin ================
+@app.on_message(filters.command("Dladmin") & filters.group & filters.user(OWNER_ID))
+async def dl_admin(client, message):
+    if not message.reply_to_message:
+        return await message.reply("replyအသုံပြုပါ")
+    user = message.reply_to_message.from_user
+    if user.id in BOT_ADMINS:
+        BOT_ADMINS.remove(user.id)
+        m = await message.reply(f"{user.first_name} အသုံးပြုဖို့ခွင့်မပြုတော့ဘူး")
+    else:
+        m = await message.reply("User is not an admin")
+    await auto_delete(m)
+    await message.delete()
+
+# ============== Adminlist ===============
+@app.on_message(filters.command("Adminlist") & filters.group & filters.user(OWNER_ID))
+async def admin_list(client, message):
+    if not BOT_ADMINS:
+        m = await message.reply("မရှိသေးပါ")
+        await auto_delete(m)
+        return
+    txt = ""
+    for uid in BOT_ADMINS:
+        txt += f"<a href='tg://user?id={uid}'>• {uid}</a>\n"
+    m = await message.reply(txt, disable_web_page_preview=True)
+    await auto_delete(m)
+    await message.delete()
+
 # ================= START =================
 @app.on_message(filters.command("Start"))
 async def start(client, message):
