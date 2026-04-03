@@ -202,7 +202,7 @@ async def tag(client, message):
     if not message.reply_to_message:
         return await message.reply("ဖာသည်မသားကိုreplyပေးပါ")
 
-    user = message.reply_to_message.from_user
+    target_user = message.reply_to_message.from_user
     chat_id = message.chat.id
 
     display_name = custom_names.get(target_user.id, target_user.first_name)
