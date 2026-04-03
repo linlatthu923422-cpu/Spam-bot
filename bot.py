@@ -3,14 +3,20 @@ import random
 import asyncio
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait
+from motor.motor_asyncio import AsyncIOMotorClient
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+OWNER_ID = int(os.getenv("OWNER_ID"))
+MONGO_URL = os.getenv("MONGO_URL")
 
-OWNER_ID = int(os.getenv("OWNER_ID"))  # <-- မင်း Telegram ID
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)  # Owner is auto admin
+
+db_client = AsyncIOMotorClient(MONGO_URL)
+db = db_client["spam_bot_db"]
+col = db["settings"]
 
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -25,6 +31,28 @@ tag_speed = (0.3, 0.3)
 running_atk = False
 running_tag = False
 
+async def load_data():
+    global atk_list, tag_list, custom_names, BOT_ADMINS
+    data = await col.find_one({"id": "bot_data"})
+    if data:
+        atk_list = data.get("atk_list", [])
+        tag_list = data.get("tag_list", [])
+        custom_names = data.get("custom_names", {})
+        admins = data.get("admins", [OWNER_ID])
+        BOT_ADMINS = set(admins)
+
+async def save_data():
+    await col.update_one(
+        {"id": "bot_data"},
+        {"$set": {
+            "atk_list": atk_list,
+            "tag_list": tag_list,
+            "custom_names": custom_names,
+            "admins": list(BOT_ADMINS)
+        }},
+        upsert=True
+    )
+    
 # ================= ADD =================
 @app.on_message(filters.command("addatk") & filters.group)
 async def add_atk(client, message):
