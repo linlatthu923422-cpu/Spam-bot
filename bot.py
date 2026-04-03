@@ -260,6 +260,9 @@ async def tag(client, message):
         return
     global running_tag
 
+    if not message.reply_to_message:
+        return await message.reply("ဖာသည်မသားကို reply ပေးပါ")
+
     if running_tag:
         return await message.reply("Tagတစ်ခုRunနေပြီးသားပါသခင်လေး")
 
