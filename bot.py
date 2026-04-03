@@ -24,88 +24,83 @@ tag_speed = (0.3, 0.3)
 running_atk = False
 running_tag = False
 
-# ================= HELPER =================
-async def auto_delete(msg, delay=3):
-    await asyncio.sleep(delay)
-    try:
-        await msg.delete()
-    except:
-        pass
-
 # ================= ADD =================
 @app.on_message(filters.command("addatk") & filters.group)
 async def add_atk(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     text = " ".join(message.command[1:])
     if text:
         atk_list.append(text)
         m = await message.reply("စာသိမ်းပြီးပါပြီသခင်လေးJohan")
-        await auto_delete(m)
-        await message.delete()
 
 @app.on_message(filters.command("addtag") & filters.group)
 async def add_tag(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     text = " ".join(message.command[1:])
     if text:
         tag_list.append(text)
         m = await message.reply("စာသိမ်းပြီးပါပြီသခင်လေးJohan")
-        await auto_delete(m)
-        await message.delete()
 
 # ================= LIST =================
 @app.on_message(filters.command("atklist") & filters.group)
 async def atklist(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     txt = "\n".join(atk_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
-    await message.delete()
 
 @app.on_message(filters.command("taglist") & filters.group)
 async def taglist(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     txt = "\n".join(tag_list) or "စာမရှိပါ"
     m = await message.reply(f"<code>{txt}</code>")
-    await message.delete()
 
 # ================= DELETE =================
 @app.on_message(filters.command("dlatk") & filters.group)
 async def dlatk(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     text = " ".join(message.command[1:])
     if text in atk_list:
         atk_list.remove(text)
     m = await message.reply("ဖျတ်လိုက်ပါပြီသခင်လေးJohan")
-    await auto_delete(m)
-    await message.delete()
 
 @app.on_message(filters.command("dltag") & filters.group)
 async def dltag(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     text = " ".join(message.command[1:])
     if text in tag_list:
         tag_list.remove(text)
     m = await message.reply("ဖျတ်လိုက်ပါပြီသခင်လေးJohan")
-    await auto_delete(m)
-    await message.delete()
 
 # ================= SPEED =================
 @app.on_message(filters.command("atksp") & filters.group)
 async def atksp(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား", parse_mode=enums.ParseMode.HTML)
         return
     global atk_speed
     try:
@@ -118,16 +113,15 @@ async def atksp(client, message):
             sp = float(val)
             atk_speed = (sp, sp)
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
-        await auto_delete(m)
-        await message.delete()
 
     except:
         await message.reply("Usage: /atksp 0.1-0.8")
 
 @app.on_message(filters.command("tagsp") & filters.group)
 async def tagsp(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား", parse_mode=enums.ParseMode.HTML)
         return
     global tag_speed
     try:
@@ -141,8 +135,6 @@ async def tagsp(client, message):
             tag_speed = (sp, sp)
             
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
-        await auto_delete(m)
-        await message.delete()
     
     except:
         await message.reply("Usage: /tagsp 0.1-0.8")
@@ -150,14 +142,14 @@ async def tagsp(client, message):
 # ================= ATK =================
 @app.on_message(filters.command("atk") & filters.group)
 async def atk(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     global running_atk
     running_atk = True
     chat_id = message.chat.id
-
-    await message.delete()
 
     while running_atk:
         for text in atk_list:
@@ -175,8 +167,10 @@ async def atk(client, message):
 # ================= TAG =================
 @app.on_message(filters.command("tag") & filters.group)
 async def tag(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     global running_tag
     running_tag = True
@@ -186,8 +180,6 @@ async def tag(client, message):
 
     user = message.reply_to_message.from_user
     chat_id = message.chat.id
-    
-    await message.delete()
 
     while running_tag:
         for text in tag_list:
@@ -205,16 +197,16 @@ async def tag(client, message):
 # ================= STOP =================
 @app.on_message(filters.command("stop") & filters.group)
 async def stop(client, message):
+    user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
-        m = await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
         return
     global running_atk, running_tag
     running_atk = False
     running_tag = False
 
     m = await message.reply("ပျင်းလာလို့ဖာသည်မသားကိုခဏတာလွှတ်မြောက်ခွင့်ပေးလိုက်ပါပြီ")
-    await auto_delete(m)
-    await message.delete()
 
 # =============== AddAdmin ===============
 @app.on_message(filters.command("addadmin") & filters.group & filters.user(OWNER_ID))
@@ -223,8 +215,8 @@ async def add_admin(client, message):
         return await message.reply("သခင်လေးကိုreplyပေးပါ")
     user = message.reply_to_message.from_user
     BOT_ADMINS.add(user.id)
-    m = await message.reply(f"{user.first_name} အသုံးပြုနိုင်ပါပြီသခင်")
-    await message.delete()
+    m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> အသုံးပြုနိုင်ပါပြီသခင်",
+        parse_mode=enums.ParseMode.HTML)
 
 # =============== Dladmin ================
 @app.on_message(filters.command("dladmin") & filters.group & filters.user(OWNER_ID))
@@ -234,10 +226,10 @@ async def dl_admin(client, message):
     user = message.reply_to_message.from_user
     if user.id in BOT_ADMINS:
         BOT_ADMINS.remove(user.id)
-        m = await message.reply(f"{user.first_name} အသုံးပြုဖို့ခွင့်မပြုတော့ဘူး")
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> အသုံးပြုဖို့ခွင့်မပြုတော့ဘူး",
+            parse_mode=enums.ParseMode.HTML)
     else:
         m = await message.reply("User is not an admin")
-    await message.delete()
 
 # ============== Adminlist ===============
 @app.on_message(filters.command("adminlist") & filters.group & filters.user(OWNER_ID))
@@ -249,7 +241,6 @@ async def admin_list(client, message):
     for uid in BOT_ADMINS:
         txt += f"<a href='tg://user?id={uid}'>• {uid}</a>\n"
     m = await message.reply(txt, disable_web_page_preview=True)
-    await message.delete()
 
 # ================= START =================
 @app.on_message(filters.command("start"))
