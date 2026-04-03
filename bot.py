@@ -35,17 +35,8 @@ running_tag = False
 welcome_text = "Welcome to our group!"
 goodbye_text = "Goodbye from our group!"
 
-# load_data() ထဲမှာ ဖြည့်စွက်ပါ
-global welcome_text, goodbye_text
-welcome_text = data.get("welcome_text", "Welcome to our group!")
-goodbye_text = data.get("goodbye_text", "Goodbye from our group!")
-
-# save_data() ထဲမှာ ဖြည့်စွက်ပါ
-"welcome_text": welcome_text,
-"goodbye_text": goodbye_text,
-
 async def load_data():
-    global atk_list, tag_list, custom_names, BOT_ADMINS
+    global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_text, goodbye_text
     data = await col.find_one({"id": "bot_data"})
     if data:
         atk_list = data.get("atk_list", [])
@@ -53,6 +44,8 @@ async def load_data():
         custom_names = data.get("custom_names", {})
         admins = data.get("admins", [OWNER_ID])
         BOT_ADMINS = set(admins)
+        welcome_text = data.get("welcome_text", "Welcome {name} to our group!") # ဒီနေရာမှာမှ data.get သုံးပါ
+        goodbye_text = data.get("goodbye_text", "Goodbye {name} from our group!")
 
 async def save_data():
     await col.update_one(
@@ -61,7 +54,9 @@ async def save_data():
             "atk_list": atk_list,
             "tag_list": tag_list,
             "custom_names": custom_names,
-            "admins": list(BOT_ADMINS)
+            "admins": list(BOT_ADMINS),
+            "welcome_text": welcome_text,
+            "goodbye_text": goodbye_text
         }},
         upsert=True
     )
