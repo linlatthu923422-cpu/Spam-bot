@@ -238,22 +238,17 @@ async def atk(client, message):
         m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
             parse_mode=enums.ParseMode.HTML)
         return
+
     global running_atk
+
+    if running_atk:
+        return await message.reply("ATKတစ်ခုRunနေပြီးသားပါသခင်လေး")
+    
     running_atk = True
     chat_id = message.chat.id
 
-    while running_atk:
-        for text in atk_list:
-            if not running_atk:
-                break
-            try:
-                await client.send_message(chat_id, text)
-                await asyncio.sleep(random.uniform(atk_speed[0], atk_speed[1]))
-            except FloodWait as e:
-                
-                await asyncio.sleep(e.value)
-            except Exception:
-                continue
+    asyncio.create_task(run_atk_loop(client, message.chat.id))
+    await message.reply("ခွေးစရိုက်ပါပြီသခင်လေး")
 
 # ================= TAG =================
 @app.on_message(filters.command("tag") & filters.group)
@@ -266,26 +261,14 @@ async def tag(client, message):
     global running_tag
     running_tag = True
 
-    if not message.reply_to_message:
-        return await message.reply("ဖာသည်မသားကိုreplyပေးပါ")
+    if running_tag:
+        return await message.reply("Tagတစ်ခုRunနေပြီးသားပါသခင်လေး")
 
     target_user = message.reply_to_message.from_user
     chat_id = message.chat.id
 
-    display_name = custom_names.get(target_user.id, target_user.first_name)
-    clickable_tag = f"<a href='tg://user?id={target_user.id}'>{display_name}</a>"
-
-    while running_tag:
-        for text in tag_list:
-            if not running_tag:
-                break
-            try:
-                await client.send_message(chat_id, f"{clickable_tag} {text}", parse_mode=enums.ParseMode.HTML)
-                await asyncio.sleep(random.uniform(tag_speed[0], tag_speed[1]))
-            except FloodWait as e:
-                await asyncio.sleep(e.value)
-            except Exception:
-                continue
+    asyncio.create_task(run_tag_loop(client, message.chat.id, message.reply_to_message.from_user))
+    await message.reply("ခွေးစရိုက်ပါပြီသခင်လေး")
 
 # ================= STOP =================
 @app.on_message(filters.command("stop") & filters.group)
@@ -340,4 +323,11 @@ async def admin_list(client, message):
 async def start(client, message):
     await message.reply("သခင်လေး @Nonfkchalant_Johan ဆီမှခွင့်ပြုချက်ရလျှင်အသုံးပြုနိုင်ပါပြီ။")
 
-app.run()
+async def main():
+    await app.start()
+    await load_data()  # <--- Bot တက်တာနဲ့ DB ကစာတွေ ပြန်ယူဖို့
+    print("Bot is Started!")
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())
