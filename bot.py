@@ -388,7 +388,48 @@ async def set_goodbye(client, message):
         goodbye_text = text
         await save_data()
         await message.reply(f"Goodbye message ပြောင်းလိုက်ပါပြီ- \n`{goodbye_text}`")
-        
+
+# ================= Helps =================
+@app.on_message(filters.command("show") & filters.group)
+async def show_all_cmds(client, message):
+    user = message.from_user
+    
+    # အခြေခံအားလုံး သုံးလို့ရတဲ့ Command များ
+    help_text = (
+        "<b>📜 Bot Commands List</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        "<b>👤 Public Commands:</b>\n"
+        "• <code>/start</code> - Bot အခြေအနေစစ်ရန်\n"
+        "• <code>/adminlist</code> - Admin စာရင်းကြည့်ရန်\n"
+        "• <code>/show</code> - Command များအားလုံးကြည့်ရန်\n\n"
+    )
+
+    # Admin သီးသန့် Command များ (Admin ဖြစ်မှ မြင်ရအောင် စစ်ထားတယ်)
+    if user.id in BOT_ADMINS:
+        help_text += (
+            "<b>🛠 Admin Control:</b>\n"
+            "• <code>/atk</code> - ATK စတင်ရန်\n"
+            "• <code>/tag</code> - Tag ထိုးရန် (Reply)\n"
+            "• <code>/stop</code> - အကုန်ရပ်တန့်ရန်\n\n"
+            "<b>📝 Data Manage:</b>\n"
+            "• <code>/addatk [စာသား]</code> - ATK စာထည့်ရန်\n"
+            "• <code>/addtag [စာသား]</code> - Tag စာထည့်ရန်\n"
+            "• <code>/atklist</code> | <code>/taglist</code> - စာရင်းကြည့်ရန်\n"
+            "• <code>/dlatk</code> | <code>/dltag</code> - စာသားဖျက်ရန်\n\n"
+            "<b>⚙ Settings:</b>\n"
+            "• <code>/atksp</code> | <code>/tagsp</code> - အမြန်နှုန်းပြင်ရန်\n"
+            "• <code>/setname [နာမည်]</code> - နာမည်ပြောင်းရန် (Reply)\n"
+            "• <code>/wc [စာသား]</code> - Welcome စာပြင်ရန်\n"
+            "• <code>/gb [စာသား]</code> - Goodbye စာပြင်ရန်\n\n"
+            "<b>👑 Owner Only:</b>\n"
+            "• <code>/addadmin</code> | <code>/dladmin</code> - Admin ခန့်ရန်/ဖြုတ်ရန် (Reply)\n"
+            "━━━━━━━━━━━━━━━━━━━━"
+        )
+    else:
+        help_text += "<i>⚠️ ATK နှင့် Tag Control များကို Admin များသာ မြင်တွေ့/အသုံးပြုနိုင်ပါသည်။</i>"
+
+    await message.reply(help_text, parse_mode=enums.ParseMode.HTML)
+    
 # ================= START =================
 @app.on_message(filters.command("start"))
 async def start(client, message):
