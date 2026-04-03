@@ -1,5 +1,6 @@
 import os
 import random
+import FloodWait
 import asyncio
 from pyrogram import Client, filters
 
@@ -154,6 +155,7 @@ async def atk(client, message):
         return
     global running_atk
     running_atk = True
+    chat_id = message.chat.id
 
     await message.delete()
 
@@ -162,10 +164,13 @@ async def atk(client, message):
             if not running_atk:
                 break
             try:
-                await message.reply(text)
+                await client.send_message(chat_id, text)
                 await asyncio.sleep(random.uniform(atk_speed[0], atk_speed[1]))
-            except:
-                break
+            except FloodWait as e:
+                
+                await asyncio.sleep(e.value)
+            except Exception:
+                continue
 
 # ================= TAG =================
 @app.on_message(filters.command("tag") & filters.group)
@@ -180,7 +185,8 @@ async def tag(client, message):
         return await message.reply("ဖာသည်မသားကိုreplyပေးပါ")
 
     user = message.reply_to_message.from_user
-
+    chat_id = message.chat.id
+    
     await message.delete()
 
     while running_tag:
@@ -188,10 +194,13 @@ async def tag(client, message):
             if not running_tag:
                 break
             try:
-                await message.reply(f"{user.mention} {text}")
+                await client.send_message(chat_id, f"{user.mention} {text}")
                 await asyncio.sleep(random.uniform(tag_speed[0], tag_speed[1]))
-            except:
-                break
+            except FloodWait as e:
+
+                await asyncio.sleep(e.value)
+            except Exception:
+                continue
 
 # ================= STOP =================
 @app.on_message(filters.command("stop") & filters.group)
