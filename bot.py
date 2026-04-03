@@ -95,6 +95,7 @@ async def add_atk(client, message):
     text = " ".join(message.command[1:])
     if text:
         atk_list.append(text)
+        await save_data()
         m = await message.reply("စာသိမ်းပြီးပါပြီသခင်လေးJohan")
 
 @app.on_message(filters.command("addtag") & filters.group)
@@ -107,6 +108,7 @@ async def add_tag(client, message):
     text = " ".join(message.command[1:])
     if text:
         tag_list.append(text)
+        await save_data()
         m = await message.reply("စာသိမ်းပြီးပါပြီသခင်လေးJohan")
 
 # ================= LIST =================
@@ -118,6 +120,7 @@ async def atklist(client, message):
             parse_mode=enums.ParseMode.HTML)
         return
     txt = "\n".join(atk_list) or "စာမရှိပါ"
+    await save_data()
     m = await message.reply(f"<code>{txt}</code>")
 
 @app.on_message(filters.command("taglist") & filters.group)
@@ -128,6 +131,7 @@ async def taglist(client, message):
             parse_mode=enums.ParseMode.HTML)
         return
     txt = "\n".join(tag_list) or "စာမရှိပါ"
+    await save_data()
     m = await message.reply(f"<code>{txt}</code>")
 
 # ================= DELETE =================
@@ -141,6 +145,7 @@ async def dlatk(client, message):
     text = " ".join(message.command[1:])
     if text in atk_list:
         atk_list.remove(text)
+        await save_data()
     m = await message.reply("ဖျတ်လိုက်ပါပြီသခင်လေးJohan")
 
 @app.on_message(filters.command("dltag") & filters.group)
@@ -153,6 +158,7 @@ async def dltag(client, message):
     text = " ".join(message.command[1:])
     if text in tag_list:
         tag_list.remove(text)
+        await save_data()
     m = await message.reply("ဖျတ်လိုက်ပါပြီသခင်လေးJohan")
 
 # ================= SPEED =================
@@ -172,6 +178,7 @@ async def atksp(client, message):
         else:
             sp = float(val)
             atk_speed = (sp, sp)
+            await save_data()
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
 
     except:
@@ -193,7 +200,7 @@ async def tagsp(client, message):
         else:
             sp = float(val)
             tag_speed = (sp, sp)
-            
+            await save_data()
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
     
     except:
@@ -220,6 +227,7 @@ async def set_custom_name(client, message):
 
     # Dictionary ထဲမှာ သိမ်းလိုက်ပြီ
     custom_names[target_user.id] = new_name
+    await save_data()
     await message.reply(f"User {target_user.id} ဖာသည်မသား '{new_name}' မင်းနမည်အသစ်အဖေပေးတာ")
     
 # ================= ATK =================
