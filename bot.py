@@ -226,7 +226,7 @@ async def set_custom_name(client, message):
         return await message.reply("နမည်ပါရေးပေးပါ")
 
     # Dictionary ထဲမှာ သိမ်းလိုက်ပြီ
-    custom_names[target_user.id] = new_name
+    custom_names[str(target_user.id)] = new_name
     await save_data()
     await message.reply(f"User {target_user.id} ဖာသည်မသား '{new_name}' မင်းနမည်အသစ်အဖေပေးတာ")
     
