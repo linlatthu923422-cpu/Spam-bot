@@ -178,10 +178,10 @@ async def atksp(client, message):
         else:
             sp = float(val)
             atk_speed = (sp, sp)
-            await save_data()
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {atk_speed}")
 
-    except:
+        await save_data()
+    except Exception:
         await message.reply("Usage: /atksp 0.1-0.8")
 
 @app.on_message(filters.command("tagsp") & filters.group)
@@ -200,10 +200,10 @@ async def tagsp(client, message):
         else:
             sp = float(val)
             tag_speed = (sp, sp)
-            await save_data()
         m = await message.reply(f"အမြန်နှုန်းကိုပြုပြင်ပြီးပါပြီသခင် = {tag_speed}")
-    
-    except:
+
+        await save_data()
+    except Exception:
         await message.reply("Usage: /tagsp 0.1-0.8")
 
 # ================ NAME =================
@@ -259,11 +259,11 @@ async def tag(client, message):
             parse_mode=enums.ParseMode.HTML)
         return
     global running_tag
-    running_tag = True
 
     if running_tag:
         return await message.reply("Tagတစ်ခုRunနေပြီးသားပါသခင်လေး")
 
+    running_tag = True
     target_user = message.reply_to_message.from_user
     chat_id = message.chat.id
 
