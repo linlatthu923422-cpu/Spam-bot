@@ -17,6 +17,7 @@ app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 # ================= DATA =================
 atk_list = []
 tag_list = []
+custom_names = {}
 
 atk_speed = (0.3, 0.3)
 tag_speed = (0.3, 0.3)
@@ -139,6 +140,29 @@ async def tagsp(client, message):
     except:
         await message.reply("Usage: /tagsp 0.1-0.8")
 
+# ================ NAME =================
+@app.on_message(filters.command("setname") & filters.group)
+async def set_custom_name(client, message):
+    user = message.from_user
+    if message.from_user.id not in BOT_ADMINS:
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
+        return
+
+    # Reply ထောက်ပြီး နာမည်ပေးရမယ် (ဥပမာ - /setname ဖာသည်မသား)
+    if not message.reply_to_message:
+        return await message.reply("Replyထောက်ပေးပါသခင်")
+
+    target_user = message.reply_to_message.from_user
+    new_name = " ".join(message.command[1:])
+
+    if not new_name:
+        return await message.reply("နမည်ပါရေးပေးပါ")
+
+    # Dictionary ထဲမှာ သိမ်းလိုက်ပြီ
+    custom_names[target_user.id] = new_name
+    await message.reply(f"User {target_user.id} ဖာသည်မသား '{new_name}' မင်းနမည်အသစ်အဖေပေးတာ")
+    
 # ================= ATK =================
 @app.on_message(filters.command("atk") & filters.group)
 async def atk(client, message):
@@ -181,15 +205,17 @@ async def tag(client, message):
     user = message.reply_to_message.from_user
     chat_id = message.chat.id
 
+    display_name = custom_names.get(target_user.id, target_user.first_name)
+    clickable_tag = f"<a href='tg://user?id={target_user.id}'>{display_name}</a>"
+
     while running_tag:
         for text in tag_list:
             if not running_tag:
                 break
             try:
-                await client.send_message(chat_id, f"{user.mention} {text}")
+                await client.send_message(chat_id, f"{clickable_tag} {text}", parse_mode=enums.ParseMode.HTML)
                 await asyncio.sleep(random.uniform(tag_speed[0], tag_speed[1]))
             except FloodWait as e:
-
                 await asyncio.sleep(e.value)
             except Exception:
                 continue
