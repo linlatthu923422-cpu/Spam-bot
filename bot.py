@@ -52,7 +52,38 @@ async def save_data():
         }},
         upsert=True
     )
-    
+
+# ================= BACKGROUND LOOP FUNCTIONS =================
+async def run_atk_loop(client, chat_id):
+    global running_atk
+    while running_atk:
+        for text in atk_list:
+            if not running_atk: break
+            try:
+                await client.send_message(chat_id, text)
+                await asyncio.sleep(random.uniform(atk_speed[0], atk_speed[1]))
+            except FloodWait as e:
+                await asyncio.sleep(e.value)
+            except Exception:
+                continue
+
+async def run_tag_loop(client, chat_id, target_user):
+    global running_tag
+    # ID ကို String အနေနဲ့ DB မှာသိမ်းထားတာဖြစ်လို့ ပြန်ရှာရင် str() သုံးရပါတယ်
+    display_name = custom_names.get(str(target_user.id), target_user.first_name)
+    clickable_tag = f"<a href='tg://user?id={target_user.id}'>{display_name}</a>"
+
+    while running_tag:
+        for text in tag_list:
+            if not running_tag: break
+            try:
+                await client.send_message(chat_id, f"{clickable_tag} {text}", parse_mode=enums.ParseMode.HTML)
+                await asyncio.sleep(random.uniform(tag_speed[0], tag_speed[1]))
+            except FloodWait as e:
+                await asyncio.sleep(e.value)
+            except Exception:
+                continue
+                
 # ================= ADD =================
 @app.on_message(filters.command("addatk") & filters.group)
 async def add_atk(client, message):
