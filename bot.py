@@ -32,11 +32,11 @@ running_atk = False
 running_tag = False
 
 # DATA အပိုင်းမှာ ထည့်ပါ
-welcome_text = "Welcome to our group!"
-goodbye_text = "Goodbye from our group!"
+welcome_texts = {}
+goodbye_texts = {}
 
 async def load_data():
-    global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_text, goodbye_text
+    global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_texts, goodbye_texts
     data = await col.find_one({"id": "bot_data"})
     if data:
         atk_list = data.get("atk_list", [])
@@ -44,8 +44,8 @@ async def load_data():
         custom_names = data.get("custom_names", {})
         admins = data.get("admins", [OWNER_ID])
         BOT_ADMINS = set(admins)
-        welcome_text = data.get("welcome_text", "Welcome {name} to our group!") # ဒီနေရာမှာမှ data.get သုံးပါ
-        goodbye_text = data.get("goodbye_text", "Goodbye {name} from our group!")
+        welcome_texts = data.get("welcome_texts", {})
+        goodbye_texts = data.get("goodbye_texts", {})
 
 async def save_data():
     await col.update_one(
@@ -55,8 +55,8 @@ async def save_data():
             "tag_list": tag_list,
             "custom_names": custom_names,
             "admins": list(BOT_ADMINS),
-            "welcome_text": welcome_text,
-            "goodbye_text": goodbye_text
+            "welcome_texts": welcome_texts,
+            "goodbye_texts": goodbye_texts
         }},
         upsert=True
     )
@@ -97,7 +97,10 @@ async def run_tag_loop(client, chat_id, target_user):
 async def welcome_handler(client, message):
     for user in message.new_chat_members:
         name = user.first_name
-        text = welcome_text.replace("{name}", name)
+        
+        chat_id = str(message.chat.id)
+        raw_text = welcome_texts.get(chat_id, "Welcome {name} to our group!") 
+        text = raw_text.replace("{name}", name)
         
         try:
             # User ရဲ့ pfp ကို ယူမယ်
@@ -115,7 +118,10 @@ async def welcome_handler(client, message):
 async def goodbye_handler(client, message):
     user = message.left_chat_member
     name = user.first_name
-    text = goodbye_text.replace("{name}", name)
+
+    chat_id = str(message.chat.id)
+    raw_text = goodbye_texts.get(chat_id, "Goodbye {name} from our group!")
+    text = raw_text.replace("{name}", name)
     
     try:
         photos = [p async for p in client.get_chat_photos(user.id, limit=1)]
@@ -367,23 +373,21 @@ async def admin_list(client, message):
 @app.on_message(filters.command("wc") & filters.group)
 async def set_welcome(client, message):
     if message.from_user.id not in BOT_ADMINS: return
-    global welcome_text
     text = " ".join(message.command[1:])
     if text:
-        welcome_text = text
+        welcome_texts[str(message.chat.id)] = text # Group ID အလိုက် သိမ်းမယ်
         await save_data()
-        await message.reply(f"Welcome message ပြောင်းလိုက်ပါပြီ- \n`{welcome_text}`")
+        await message.reply(f"ဒီ Group အတွက် Welcome စာသား ပြောင်းလိုက်ပါပြီ")
 
 @app.on_message(filters.command("gb") & filters.group)
 async def set_goodbye(client, message):
     if message.from_user.id not in BOT_ADMINS: return
-    global goodbye_text
     text = " ".join(message.command[1:])
     if text:
-        goodbye_text = text
+        goodbye_texts[str(message.chat.id)] = text # Group ID အလိုက် သိမ်းမယ်
         await save_data()
-        await message.reply(f"Goodbye message ပြောင်းလိုက်ပါပြီ- \n`{goodbye_text}`")
-
+        await message.reply(f"ဒီ Group အတွက် Goodbye စာသား ပြောင်းလိုက်ပါပြီ")
+        
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
 async def show_all_cmds(client, message):
