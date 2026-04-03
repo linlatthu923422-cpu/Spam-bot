@@ -1,8 +1,8 @@
 import os
 import random
-import FloodWait
 import asyncio
 from pyrogram import Client, filters
+from pyrogram.errors import FloodWait
 
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
