@@ -31,6 +31,19 @@ tag_speed = (0.3, 0.3)
 running_atk = False
 running_tag = False
 
+# DATA အပိုင်းမှာ ထည့်ပါ
+welcome_text = "Welcome to our group!"
+goodbye_text = "Goodbye from our group!"
+
+# load_data() ထဲမှာ ဖြည့်စွက်ပါ
+global welcome_text, goodbye_text
+welcome_text = data.get("welcome_text", "Welcome to our group!")
+goodbye_text = data.get("goodbye_text", "Goodbye from our group!")
+
+# save_data() ထဲမှာ ဖြည့်စွက်ပါ
+"welcome_text": welcome_text,
+"goodbye_text": goodbye_text,
+
 async def load_data():
     global atk_list, tag_list, custom_names, BOT_ADMINS
     data = await col.find_one({"id": "bot_data"})
@@ -83,7 +96,41 @@ async def run_tag_loop(client, chat_id, target_user):
                 await asyncio.sleep(e.value)
             except Exception:
                 continue
-                
+
+# Welcome Logic
+@app.on_message(filters.new_chat_members & filters.group)
+async def welcome_handler(client, message):
+    for user in message.new_chat_members:
+        name = user.first_name
+        text = welcome_text.replace("{name}", name)
+        
+        try:
+            # User ရဲ့ pfp ကို ယူမယ်
+            photos = [p async for p in client.get_chat_photos(user.id, limit=1)]
+            if photos:
+                await message.reply_photo(photos[0].file_id, caption=text)
+            else:
+                # pfp မရှိရင် စာပဲပို့မယ်
+                await message.reply(text)
+        except Exception:
+            await message.reply(text)
+
+# Goodbye Logic
+@app.on_message(filters.left_chat_member & filters.group)
+async def goodbye_handler(client, message):
+    user = message.left_chat_member
+    name = user.first_name
+    text = goodbye_text.replace("{name}", name)
+    
+    try:
+        photos = [p async for p in client.get_chat_photos(user.id, limit=1)]
+        if photos:
+            await message.reply_photo(photos[0].file_id, caption=text)
+        else:
+            await message.reply(text)
+    except Exception:
+        await message.reply(text)
+        
 # ================= ADD =================
 @app.on_message(filters.command("addatk") & filters.group)
 async def add_atk(client, message):
@@ -321,6 +368,27 @@ async def admin_list(client, message):
         txt += f"<a href='tg://user?id={uid}'>• {uid}</a>\n"
     m = await message.reply(txt, disable_web_page_preview=True)
 
+# ========= Edit welcome/goodbye =========
+@app.on_message(filters.command("wc") & filters.group)
+async def set_welcome(client, message):
+    if message.from_user.id not in BOT_ADMINS: return
+    global welcome_text
+    text = " ".join(message.command[1:])
+    if text:
+        welcome_text = text
+        await save_data()
+        await message.reply(f"Welcome message ပြောင်းလိုက်ပါပြီ- \n`{welcome_text}`")
+
+@app.on_message(filters.command("gb") & filters.group)
+async def set_goodbye(client, message):
+    if message.from_user.id not in BOT_ADMINS: return
+    global goodbye_text
+    text = " ".join(message.command[1:])
+    if text:
+        goodbye_text = text
+        await save_data()
+        await message.reply(f"Goodbye message ပြောင်းလိုက်ပါပြီ- \n`{goodbye_text}`")
+        
 # ================= START =================
 @app.on_message(filters.command("start"))
 async def start(client, message):
