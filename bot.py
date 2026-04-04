@@ -546,17 +546,16 @@ async def channel_admin_broadcast(client, message):
 
     for gid in group_ids:
         try:
-            if hasattr(target_msg, "copy"):
-                await target_msg.copy(gid)
+            if hasattr(target_msg, "forward"):
+                await target_msg.forward(gid)
             else:
                 await client.send_message(gid, target_msg)
             sent += 1
             await asyncio.sleep(0.5) # Telegram spam မဖြစ်အောင် ခေတ္တစောင့်ခြင်း
         except FloodWait as e:
             await asyncio.sleep(e.value)
-            # စောင့်ပြီးရင် ပြန်ပို့မယ်
-            if hasattr(target_msg, "copy"):
-                await target_msg.copy(gid)
+            if hasattr(target_msg, "forward"):
+                await target_msg.forward(gid)
             else:
                 await client.send_message(gid, target_msg)
             sent += 1
