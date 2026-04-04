@@ -472,6 +472,63 @@ async def call_online(client, message):
             continue
 
     await message.reply(f"အကုန်ခေါ်ပြီးပါပြီသခင်လေး 📢")
+
+# ============== Broadcast ================
+@app.on_message(filters.command("bc"))
+async def channel_admin_broadcast(client, message):
+    is_admin = False
+    
+    if message.from_user and message.from_user.id in BOT_ADMINS:
+        is_admin = True
+    
+    elif message.sender_chat and (message.sender_chat.id == OWNER_ID or message.sender_chat.id == message.chat.id):
+        is_admin = True
+
+    if not is_admin:
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
+        return
+    
+    target_msg = None
+    input_text = " ".join(message.command[1:])
+
+    if message.reply_to_message:
+        target_msg = message.reply_to_message
+    elif input_text:
+        target_msg = input_text
+    else:
+        async for msg in client.get_chat_history(message.chat.id, limit=15):
+            if msg.forward_from_chat and msg.forward_from_chat.type == enums.ChatType.CHANNEL:
+                target_msg = msg
+                break
+
+    if not target_msg:
+        return await message.reply("Broadcast လုပ်ဖို့ ပစ္စည်း ရှာမတွေ့ပါဘူး။")
+
+    data = await col.find_one({"id": "bot_data"})
+    group_ids = data.get("group_ids", [])
+    
+    if not group_ids:
+        return await message.reply("ပို့စရာ Group မရှိသေးပါ။")
+
+    m = await message.reply("Processing Broadcast...")
+    sent, fail = 0, 0
+
+    for gid in group_ids:
+        try:
+            if hasattr(target_msg, "copy"):
+                await target_msg.copy(gid)
+            else:
+                await client.send_message(gid, target_msg)
+            sent += 1
+            await asyncio.sleep(0.5)
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+        except Exception:
+            fail += 1
+            continue
+
+    await m.edit(f"✅ Broadcast Finished!\n\nSuccess: {sent}\nFailed: {fail}")
     
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
