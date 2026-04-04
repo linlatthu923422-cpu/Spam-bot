@@ -372,16 +372,24 @@ async def admin_list(client, message):
 # ========= Edit welcome/goodbye =========
 @app.on_message(filters.command("wc") & filters.group)
 async def set_welcome(client, message):
-    if message.from_user.id not in BOT_ADMINS: return
+    user = message.from_user
+    if message.from_user.id not in BOT_ADMINS:
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
+        return
     text = " ".join(message.command[1:])
     if text:
         welcome_texts[str(message.chat.id)] = text # Group ID အလိုက် သိမ်းမယ်
         await save_data()
         await message.reply(f"ဒီ Group အတွက် Welcome စာသား ပြောင်းလိုက်ပါပြီ")
 
-@app.on_message(filters.command("gb") & filters.group)
+@app.on_message(filter.command("gb") & filters.group)
 async def set_goodbye(client, message):
-    if message.from_user.id not in BOT_ADMINS: return
+    user = message.from_user
+    if message.from_user.id not in BOT_ADMINS:
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
+        return
     text = " ".join(message.command[1:])
     if text:
         goodbye_texts[str(message.chat.id)] = text # Group ID အလိုက် သိမ်းမယ်
