@@ -383,7 +383,7 @@ async def set_welcome(client, message):
         await save_data()
         await message.reply(f"ဒီ Group အတွက် Welcome စာသား ပြောင်းလိုက်ပါပြီ")
 
-@app.on_message(filter.command("gb") & filters.group)
+@app.on_message(filters.command("gb") & filters.group)
 async def set_goodbye(client, message):
     user = message.from_user
     if message.from_user.id not in BOT_ADMINS:
