@@ -94,16 +94,15 @@ async def run_tag_loop(client, chat_id, target_user):
             except Exception:
                 continue
                 
-# ဘယ် Command ပဲဖြစ်ဖြစ် သုံးလိုက်တာနဲ့ ID သိမ်းပေးမယ့် Function
-@app.on_message(filters.command(None) & filters.group, group=-1)
+# =================== regexd ===================
+@app.on_message(filters.regex(r"^/") & filters.group, group=-1)
 async def auto_save_id_on_command(client, message):
     chat_id = message.chat.id
-
     global group_ids
+    
     if chat_id not in group_ids:
         group_ids.append(chat_id)
-
-    await save_data()
+        await save_data()
 
 # Welcome_logic
 @app.on_message(filters.new_chat_members & filters.group)
