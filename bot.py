@@ -91,15 +91,35 @@ async def run_tag_loop(client, chat_id, target_user):
                 await asyncio.sleep(e.value)
             except Exception:
                 continue
+                
+# ဘယ် Command ပဲဖြစ်ဖြစ် သုံးလိုက်တာနဲ့ ID သိမ်းပေးမယ့် Function
+@app.on_message(filters.command(None) & filters.group, group=-1)
+async def auto_save_id_on_command(client, message):
+    chat_id = message.chat.id
+    await col.update_one(
+        {"id": "bot_data"},
+        {"$addToSet": {"group_ids": chat_id}},
+        upsert=True
+    )
 
-# Welcome Logic
+# Welcome_logic
 @app.on_message(filters.new_chat_members & filters.group)
 async def welcome_handler(client, message):
+
+    chat_id = message.chat.id
+    
+    await col.update_one(
+        {"id": "bot_data"},
+        {"$addToSet": {"group_ids": chat_id}},
+        upsert=True
+    )
+
+    raw_text = welcome_texts.get(chat_id, "Welcome {name} to our group!")
+    
     for user in message.new_chat_members:
         name = user.first_name
         
         chat_id = str(message.chat.id)
-        raw_text = welcome_texts.get(chat_id, "Welcome {name} to our group!") 
         text = raw_text.replace("{name}", name)
         
         try:
@@ -478,16 +498,24 @@ async def call_online(client, message):
 async def channel_admin_broadcast(client, message):
     is_admin = False
     
+    # Admin စစ်ဆေးခြင်း
     if message.from_user and message.from_user.id in BOT_ADMINS:
         is_admin = True
-    
     elif message.sender_chat and (message.sender_chat.id == OWNER_ID or message.sender_chat.id == message.chat.id):
         is_admin = True
 
+    # --- ဒီနေရာမှာ အောက်က code အသစ်ကို အစားထိုးလိုက်ပါ ---
     if not is_admin:
-        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
-            parse_mode=enums.ParseMode.HTML)
+        # message ပို့တဲ့သူရှိရင် id ကိုယူမယ်၊ မရှိရင် (Channel post ဆိုရင်) Admin လို့ ပြမယ်
+        u_id = message.from_user.id if message.from_user else message.chat.id
+        u_name = message.from_user.first_name if message.from_user else "Admin"
+        
+        await message.reply(
+            f"<a href='tg://user?id={u_id}'>{u_name}</a> မင်းကခွင့်ပြုချက်မရှိဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML
+        )
         return
+    # --------------------------------------------------
     
     target_msg = None
     input_text = " ".join(message.command[1:])
@@ -497,6 +525,7 @@ async def channel_admin_broadcast(client, message):
     elif input_text:
         target_msg = input_text
     else:
+        # Channel forward message ကို ရှာခြင်း
         async for msg in client.get_chat_history(message.chat.id, limit=15):
             if msg.forward_from_chat and msg.forward_from_chat.type == enums.ChatType.CHANNEL:
                 target_msg = msg
@@ -505,13 +534,14 @@ async def channel_admin_broadcast(client, message):
     if not target_msg:
         return await message.reply("Broadcast လုပ်ဖို့ ပစ္စည်း ရှာမတွေ့ပါဘူး။")
 
+    # Database ထဲက Group list ကို ဆွဲထုတ်ခြင်း
     data = await col.find_one({"id": "bot_data"})
-    group_ids = data.get("group_ids", [])
+    group_ids = data.get("group_ids", []) if data else []
     
     if not group_ids:
         return await message.reply("ပို့စရာ Group မရှိသေးပါ။")
 
-    m = await message.reply("Processing Broadcast...")
+    progress_msg = await message.reply("Processing Broadcast...")
     sent, fail = 0, 0
 
     for gid in group_ids:
@@ -521,14 +551,20 @@ async def channel_admin_broadcast(client, message):
             else:
                 await client.send_message(gid, target_msg)
             sent += 1
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.5) # Telegram spam မဖြစ်အောင် ခေတ္တစောင့်ခြင်း
         except FloodWait as e:
             await asyncio.sleep(e.value)
+            # စောင့်ပြီးရင် ပြန်ပို့မယ်
+            if hasattr(target_msg, "copy"):
+                await target_msg.copy(gid)
+            else:
+                await client.send_message(gid, target_msg)
+            sent += 1
         except Exception:
             fail += 1
             continue
 
-    await m.edit(f"✅ Broadcast Finished!\n\nSuccess: {sent}\nFailed: {fail}")
+    await progress_msg.edit(f"✅ Broadcast Finished!\n\nSuccess: {sent}\nFailed: {fail}")
     
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
