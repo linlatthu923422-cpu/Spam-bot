@@ -395,7 +395,44 @@ async def set_goodbye(client, message):
         goodbye_texts[str(message.chat.id)] = text # Group ID အလိုက် သိမ်းမယ်
         await save_data()
         await message.reply(f"ဒီ Group အတွက် Goodbye စာသား ပြောင်းလိုက်ပါပြီ")
+
+
+# ================= Calls ==================
+@app.on_message(filters.command("all") & filters.group)
+async def mention_all(client, message):
+    user = message.from_user
+    if message.from_user.id not in BOT_ADMINS:
+        m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
+            parse_mode=enums.ParseMode.HTML)
+        return
         
+    input_text = " ".join(message.command[1:]) or "Attention Everyone! 📢"
+    
+    chat_id = message.chat.id
+    members_list = []
+    
+    async for member in client.get_chat_members(chat_id):
+        if not member.user.is_bot:
+            members_list.append(member.user)
+            
+    for i in range(0, len(members_list), 5):
+        output = f"<b>{input_text}</b>\n\n"
+        chunk = members_list[i:i + 5]
+        
+        for user in chunk:
+            name = user.first_name or "User"
+            output += f"• <a href='tg://user?id={user.id}'>{name}</a>\n"
+        
+        try:
+            await client.send_message(chat_id, output, parse_mode=enums.ParseMode.HTML)
+            await asyncio.sleep(2.0)
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+        except Exception:
+            continue
+
+    await message.reply("အကုန်ခေါ်ပြီးပါပြီသခင်လေး 📢")
+    
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
 async def show_all_cmds(client, message):
@@ -414,6 +451,8 @@ async def show_all_cmds(client, message):
     # Admin သီးသန့် Command များ (Admin ဖြစ်မှ မြင်ရအောင် စစ်ထားတယ်)
     if user.id in BOT_ADMINS:
         help_text += (
+            "<b>📢 Call & mentions:</b>\n"
+            "• <code>/all [text]</code> - Member အားလုံးကို Mention ရန်\n"
             "<b>🛠 Admin Control:</b>\n"
             "• <code>/atk</code> - ATK စတင်ရန်\n"
             "• <code>/tag</code> - Tag ထိုးရန် (Reply)\n"
