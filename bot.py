@@ -23,6 +23,7 @@ app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 # ================= DATA =================
 atk_list = []
 tag_list = []
+group_ids = []
 custom_names = {}
 
 atk_speed = (0.3, 0.3)
@@ -31,7 +32,6 @@ tag_speed = (0.3, 0.3)
 running_atk = False
 running_tag = False
 
-# DATA အပိုင်းမှာ ထည့်ပါ
 welcome_texts = {}
 goodbye_texts = {}
 
@@ -41,6 +41,7 @@ async def load_data():
     if data:
         atk_list = data.get("atk_list", [])
         tag_list = data.get("tag_list", [])
+        group_ids = data.get("group_ids", [])
         custom_names = data.get("custom_names", {})
         admins = data.get("admins", [OWNER_ID])
         BOT_ADMINS = set(admins)
@@ -53,6 +54,7 @@ async def save_data():
         {"$set": {
             "atk_list": atk_list,
             "tag_list": tag_list,
+            "group_ids": group_ids,
             "custom_names": custom_names,
             "admins": list(BOT_ADMINS),
             "welcome_texts": welcome_texts,
@@ -96,11 +98,12 @@ async def run_tag_loop(client, chat_id, target_user):
 @app.on_message(filters.command(None) & filters.group, group=-1)
 async def auto_save_id_on_command(client, message):
     chat_id = message.chat.id
-    await col.update_one(
-        {"id": "bot_data"},
-        {"$addToSet": {"group_ids": chat_id}},
-        upsert=True
-    )
+
+    global group_ids
+    if chat_id not in group_ids:
+        group_ids.append(chat_id)
+
+    await save_data()
 
 # Welcome_logic
 @app.on_message(filters.new_chat_members & filters.group)
@@ -123,12 +126,10 @@ async def welcome_handler(client, message):
         text = raw_text.replace("{name}", name)
         
         try:
-            # User ရဲ့ pfp ကို ယူမယ်
             photos = [p async for p in client.get_chat_photos(user.id, limit=1)]
             if photos:
                 await message.reply_photo(photos[0].file_id, caption=text)
             else:
-                # pfp မရှိရင် စာပဲပို့မယ်
                 await message.reply(text)
         except Exception:
             await message.reply(text)
