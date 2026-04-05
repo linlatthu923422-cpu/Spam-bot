@@ -122,14 +122,17 @@ async def handle_auto_reply(client, message):
                 await message.reply(res)
 
                 try:
-    # Pyrogram v2.0.106 အတွက် အမှန်ကန်ဆုံး နည်းလမ်း
-                await client.send_reaction(
-                    chat_id=message.chat.id,
-                    message_id=message.id,
-                    emoji=random.choice(REACTION_EMOJIS)
-                )
+                    await client.send_reaction(
+                        chat_id=message.chat.id,
+                        message_id=message.id,
+                        emoji=random.choice(REACTION_EMOJIS)
+                    )
+                except Exception as re:
+                    print(f"Reaction Error: {re}")
+                
+                break
             except Exception as e:
-                print(f"Reaction Error: {e}")
+                print(f"Reply Error: {e}")
             
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
