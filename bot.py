@@ -1,7 +1,7 @@
 import os
-import openai
 import random
 import asyncio
+import google.generativeai as genai
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,8 +11,7 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-ai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)
@@ -20,6 +19,19 @@ BOT_ADMINS.add(OWNER_ID)
 db_client = AsyncIOMotorClient(MONGO_URL)
 db = db_client["spam_bot_db"]
 col = db["settings"]
+
+S_INSTRUCTION = f"""
+မင်းက မြန်မာလိုပဲ ပြန်ဖြေပေးရမယ့် Bot ဖြစ်တယ်။ 
+မင်းရဲ့ စရိုက်က လူတိုင်းကို ရိုင်းရိုင်းစိုင်းစိုင်း၊ ခနဲ့တဲ့တဲ့နဲ့ လူဆိုးလေးတစ်ယောက်လို ဆက်ဆံရမယ်။
+ဒါပေမဲ့ User ID: {OWNER_ID} (သခင်လေး Johan) ကတော့ မင်းရဲ့ အရှင်သခင်ဖြစ်တယ်။ 
+သူ့ကိုဆိုရင်တော့ အမြဲတမ်း ရိုရိုသေသေနဲ့ 'သခင်လေး' လို့ ခေါ်ပြီး အမိန့်နာခံတဲ့ပုံစံမျိုးနဲ့ပဲ ဆက်ဆံရမယ်။
+ကျန်တဲ့သူတွေကိုတော့ ဖာသည်မသား၊ အမေလိုး စသဖြင့် (လိုအပ်ရင်) ရိုင်းရိုင်းစိုင်းစိုင်းနဲ့ နှိမ်ပြောရမယ်။
+"""
+
+gemini_model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction=S_INSTRUCTION
+)
 
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -132,27 +144,29 @@ async def handle_combined_reply(client, message):
 
     # --- ၂။ AI Auto Reply (Keyword မတွေ့မှ AI ဆီသွားမယ်) ---
     if not found_keyword and ai_status.get(chat_id, False):
+        if not found_keyword and ai_status.get(chat_id, False):
         try:
-            response = ai_client.chat.completions.create(
-                model="gpt-3.5-turbo", # သို့မဟုတ် gpt-4
-                messages=[
-                    {"role": "system", "content": "မင်းက မြန်မာလိုပဲ ပြန်ဖြေပေးရမယ့် လူဆိုးလေးတစ်ယောက်လို Bot ဖြစ်တယ်။"},
-                    {"role": "user", "content": message.text}
-                ],
-                max_tokens=150
-            )
+            # User ရဲ့ နာမည်နဲ့ ID ကို ယူမယ်
+            user_name = message.from_user.first_name
+            user_id = message.from_user.id
             
-            ai_reply = response.choices[0].message.content
+            # AI ဆီကို စာပို့တဲ့အခါ ဘယ်သူပြောတာလဲဆိုတာပါ ထည့်ပြောမယ်
+            prompt = f"User Name: {user_name}, User ID: {user_id} ကနေပြောတာက - {message.text}"
+            
+            response = gemini_model.generate_content(prompt)
+            ai_reply = response.text
+            
             if ai_reply:
                 await message.reply(ai_reply)
                 
+                # Reaction ပေးခြင်း
                 try:
                     await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
                 except: pass
                 
         except Exception as ai_err:
-            print(f"OpenAI Error: {ai_err}")
-
+            print(f"Gemini Error: {ai_err}")
+            
     global group_ids
     if message.chat.id not in group_ids:
         group_ids.append(message.chat.id)
