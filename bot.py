@@ -37,6 +37,7 @@ goodbye_texts = {}
 
 auto_replies = {}
 REACTION_EMOJIS = ["❤️", "🔥", "⚡️", "✨", "🎉", "💯", "🫡", "👾", "💘", "🗿", "🌚"]
+ai_status = {}
 
 async def load_data():
     global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_texts, goodbye_texts, auto_replies
@@ -51,6 +52,7 @@ async def load_data():
         welcome_texts = data.get("welcome_texts", {})
         goodbye_texts = data.get("goodbye_texts", {})
         auto_replies = data.get("auto_replies", {})
+        ai_status = data.get("ai_status", {})
 
 async def save_data():
     await col.update_one(
@@ -63,7 +65,8 @@ async def save_data():
             "admins": list(BOT_ADMINS),
             "welcome_texts": welcome_texts,
             "goodbye_texts": goodbye_texts,
-            "auto_replies": auto_replies
+            "auto_replies": auto_replies,
+            "ai_status": ai_status
         }},
         upsert=True
     )
@@ -98,6 +101,18 @@ async def run_tag_loop(client, chat_id, target_user):
             except Exception:
                 continue
 
+@app.on_message(filters.text & filters.group, group=3)
+async def handle_auto_reply(client, message):
+    if message.text.startswith("/"): 
+        return
+
+    chat_id = str(message.chat.id)
+    
+    if not ai_status.get(chat_id, False):
+        return
+
+    msg_text = message.text.lower().strip()
+    
 # ================= AUTO REPLY LOGIC =================
 @app.on_message(filters.text & filters.group, group=3)
 async def handle_auto_reply(client, message):
@@ -120,22 +135,24 @@ async def handle_auto_reply(client, message):
                 await message.reply(res)
 
                 try:
-                    from pyrogram.raw import types, functions
-                    emoji = random.choice(REACTION_EMOJIS)
-                    
-                    peer = await client.resolve_peer(message.chat.id)
-                    await client.invoke(
-                        functions.messages.SendReaction(
-                            peer=peer,
-                            msg_id=message.id,
-                            reaction=[types.ReactionEmoji(emoticon=emoji)]
-                        )
+                    await client.set_reaction(
+                        chat_id=message.chat.id,
+                        message_id=message.id,
+                        emoji=random.choice(REACTION_EMOJIS)
                     )
-                except Exception:
+                except Exception as e:
                     try:
-                        await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
-                    except Exception as re:
-                        print(f"Reaction Final Error: {re}")
+                        from pyrogram.raw import types, functions
+                        peer = await client.resolve_peer(message.chat.id)
+                        await client.invoke(
+                            functions.messages.SendReaction(
+                                peer=peer,
+                                msg_id=message.id,
+                                reaction=[types.ReactionEmoji(emoticon=random.choice(REACTION_EMOJIS))]
+                            )
+                        )
+                    except Exception as final_err:
+                        print(f"Reaction Final Error: {final_err}")
                 
                 break
 
@@ -646,7 +663,25 @@ async def channel_admin_broadcast(client, message):
             continue
 
     await progress_msg.edit(f"✅ Broadcast Finished!\n\nSuccess: {sent}\nFailed: {fail}")
+
+# ================== Ai Reply ==================
+@app.on_message(filters.command(["on", "off"]) & filters.group)
+async def control_ai(client, message):
+    if message.from_user.id not in BOT_ADMINS:
+        return await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
     
+    cmd = message.command[0].lower()
+    chat_id = str(message.chat.id)
+    
+    if cmd == "on":
+        ai_status[chat_id] = True
+        await save_data() # Database ထဲ သိမ်းမယ်
+        await message.reply("✅ AI Auto Reply ကို ဖွင့်လိုက်ပါပြီ သခင်လေး Johan။")
+    else:
+        ai_status[chat_id] = False
+        await save_data() # Database ထဲ သိမ်းမယ်
+        await message.reply("❌ AI Auto Reply ကို ပိတ်လိုက်ပါပြီ။")
+        
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
 async def show_all_cmds(client, message):
