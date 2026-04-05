@@ -49,9 +49,7 @@ async def load_data():
         admins = data.get("admins", [OWNER_ID])
         BOT_ADMINS = set(admins)
         welcome_texts = data.get("welcome_texts", {})
-        welcome_texts = {str(k): v for k, v in db_welcome.items()}
         goodbye_texts = data.get("goodbye_texts", {})
-        goodbye_texts = {str(k): v for k, v in db_goodbye.items()}
         auto_replies = data.get("auto_replies", {})
 
 async def save_data():
