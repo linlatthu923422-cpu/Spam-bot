@@ -518,7 +518,7 @@ async def channel_admin_broadcast(client, message):
     # --------------------------------------------------
     
     target_msg = None
-    input_text = " ".join(message.command[1:])
+    input_text = message.text.split(None, 1)[1] if len(message.text.split()) > 1 else ""
 
     if message.reply_to_message:
         target_msg = message.reply_to_message
@@ -549,7 +549,7 @@ async def channel_admin_broadcast(client, message):
             if hasattr(target_msg, "forward"):
                 await target_msg.forward(gid)
             else:
-                await client.send_message(gid, target_msg)
+                await client.send_message(gid, target_msg, parse_mode=enums.ParseMode.HTML)
             sent += 1
             await asyncio.sleep(0.5) # Telegram spam မဖြစ်အောင် ခေတ္တစောင့်ခြင်း
         except FloodWait as e:
@@ -557,7 +557,7 @@ async def channel_admin_broadcast(client, message):
             if hasattr(target_msg, "forward"):
                 await target_msg.forward(gid)
             else:
-                await client.send_message(gid, target_msg)
+                await client.send_message(gid, target_msg, parse_mode=enums.ParseMode.HTML)
             sent += 1
         except Exception:
             fail += 1
