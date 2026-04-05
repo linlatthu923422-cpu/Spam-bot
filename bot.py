@@ -49,7 +49,9 @@ async def load_data():
         admins = data.get("admins", [OWNER_ID])
         BOT_ADMINS = set(admins)
         welcome_texts = data.get("welcome_texts", {})
+        welcome_texts = {str(k): v for k, v in db_welcome.items()}
         goodbye_texts = data.get("goodbye_texts", {})
+        goodbye_texts = {str(k): v for k, v in db_goodbye.items()}
         auto_replies = data.get("auto_replies", {})
 
 async def save_data():
@@ -120,18 +122,14 @@ async def handle_auto_reply(client, message):
                 await message.reply(res)
 
                 try:
-                    await client.send_reaction(
-                        chat_id=message.chat.id,
-                        message_id=message.id,
-                        reactions=[enums.ReactionTypeEmoji(emoji=random.choice(REACTION_EMOJIS))]
-                    )
-                except Exception:
-                    try:
-                        await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
-                    except: pass
-                break 
+    # Pyrogram v2.0.106 အတွက် အမှန်ကန်ဆုံး နည်းလမ်း
+                await client.send_reaction(
+                    chat_id=message.chat.id,
+                    message_id=message.id,
+                    emoji=random.choice(REACTION_EMOJIS)
+                )
             except Exception as e:
-                print(f"Reply Error: {e}")
+                print(f"Reaction Error: {e}")
             
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
