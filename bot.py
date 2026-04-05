@@ -12,7 +12,7 @@ OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
 
 BOT_ADMINS = set()
-BOT_ADMINS.add(OWNER_ID)  # Owner is auto admin
+BOT_ADMINS.add(OWNER_ID)
 
 db_client = AsyncIOMotorClient(MONGO_URL)
 db = db_client["spam_bot_db"]
@@ -35,6 +35,9 @@ running_tag = False
 welcome_texts = {}
 goodbye_texts = {}
 
+auto_replies = {}
+REACTION_EMOJIS = ["❤️", "🔥", "⚡️", "✨", "🎉", "💯", "🫡", "👾", "💘", "🗿", "🌚"]
+
 async def load_data():
     global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_texts, goodbye_texts
     data = await col.find_one({"id": "bot_data"})
@@ -47,6 +50,7 @@ async def load_data():
         BOT_ADMINS = set(admins)
         welcome_texts = data.get("welcome_texts", {})
         goodbye_texts = data.get("goodbye_texts", {})
+        auto_replies = data.get("auto_replies", {})
 
 async def save_data():
     await col.update_one(
@@ -58,7 +62,8 @@ async def save_data():
             "custom_names": custom_names,
             "admins": list(BOT_ADMINS),
             "welcome_texts": welcome_texts,
-            "goodbye_texts": goodbye_texts
+            "goodbye_texts": goodbye_texts,
+            "auto_replies": auto_replies
         }},
         upsert=True
     )
@@ -79,7 +84,6 @@ async def run_atk_loop(client, chat_id):
 
 async def run_tag_loop(client, chat_id, target_user):
     global running_tag
-    # ID ကို String အနေနဲ့ DB မှာသိမ်းထားတာဖြစ်လို့ ပြန်ရှာရင် str() သုံးရပါတယ်
     display_name = custom_names.get(str(target_user.id), target_user.first_name)
     clickable_tag = f"<a href='tg://user?id={target_user.id}'>{display_name}</a>"
 
@@ -93,7 +97,27 @@ async def run_tag_loop(client, chat_id, target_user):
                 await asyncio.sleep(e.value)
             except Exception:
                 continue
-                
+
+# ================= AUTO REPLY LOGIC =================
+@app.on_message(filters.text & filters.group, group=1)
+async def handle_auto_reply(client, message):
+    if message.text.startswith("/"): return
+
+    msg_text = message.text.lower().strip()
+    
+    if msg_text in auto_replies:
+        try:
+            random_reply = random.choice(auto_replies[msg_text])
+            await message.reply(random_reply)
+
+            await client.send_reaction(
+                chat_id=message.chat.id,
+                message_id=message.id,
+                emoji=random.choice(REACTION_EMOJIS)
+            )
+        except Exception:
+            pass
+            
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
 async def auto_save_id_on_command(client, message):
@@ -229,6 +253,48 @@ async def dltag(client, message):
         await save_data()
     m = await message.reply("ဖျတ်လိုက်ပါပြီသခင်လေးJohan")
 
+# ================= AUTO REPLY MANAGEMENT =================
+@app.on_message(filters.command("addreply") & filters.group)
+async def add_reply(client, message):
+    if message.from_user.id not in BOT_ADMINS:
+        return await message.reply("မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား")
+    
+    if len(message.command) < 2 or "|" not in message.text:
+        return await message.reply("Usage: <code>/addreply keyword | reply_text</code>")
+    
+    parts = message.text.split("/addreply", 1)[1].split("|", 1)
+    keyword = parts[0].strip().lower()
+    reply_text = parts[1].strip()
+    
+    if keyword not in auto_replies:
+        auto_replies[keyword] = []
+    
+    if reply_text not in auto_replies[keyword]:
+        auto_replies[keyword].append(reply_text)
+        await save_data()
+        await message.reply(f"Added: <b>{keyword}</b> အတွက် Reply အသစ် တိုးလိုက်ပါပြီသခင်လေး Johan")
+    else:
+        await message.reply("ဒီ Reply က ရှိပြီးသားပါသခင်လေး")
+
+@app.on_message(filters.command("dlreply") & filters.group)
+async def dl_reply(client, message):
+    if message.from_user.id not in BOT_ADMINS: return
+    keyword = " ".join(message.command[1:]).strip().lower()
+    if keyword in auto_replies:
+        del auto_replies[keyword]
+        await save_data()
+        await message.reply(f"ဖျက်လိုက်ပါပြီသခင်လေး: {keyword}")
+    else:
+        await message.reply("ရှာမတွေ့ပါဘူးသခင်လေး")
+
+@app.on_message(filters.command("replylist") & filters.group)
+async def reply_list(client, message):
+    if not auto_replies: return await message.reply("စာရင်းမရှိသေးပါ")
+    txt = "<b>Auto Reply List:</b>\n\n"
+    for k, v in auto_replies.items():
+        txt += f"• <code>{k}</code> ({len(v)} replies)\n"
+    await message.reply(txt)
+    
 # ================= SPEED =================
 @app.on_message(filters.command("atksp") & filters.group)
 async def atksp(client, message):
@@ -282,8 +348,7 @@ async def set_custom_name(client, message):
         m = await message.reply(f"<a href='tg://user?id={user.id}'>{user.first_name}</a> မင်းကခွင့်ပြုချက်မရဘူးဖာသည်မသား",
             parse_mode=enums.ParseMode.HTML)
         return
-
-    # Reply ထောက်ပြီး နာမည်ပေးရမယ် (ဥပမာ - /setname ဖာသည်မသား)
+        
     if not message.reply_to_message:
         return await message.reply("Replyထောက်ပေးပါသခင်")
 
@@ -293,7 +358,6 @@ async def set_custom_name(client, message):
     if not new_name:
         return await message.reply("နမည်ပါရေးပေးပါ")
 
-    # Dictionary ထဲမှာ သိမ်းလိုက်ပြီ
     custom_names[str(target_user.id)] = new_name
     await save_data()
     await message.reply(f"User {target_user.id} ဖာသည်မသား '{new_name}' မင်းနမည်အသစ်အဖေပေးတာ")
@@ -498,15 +562,12 @@ async def call_online(client, message):
 async def channel_admin_broadcast(client, message):
     is_admin = False
     
-    # Admin စစ်ဆေးခြင်း
     if message.from_user and message.from_user.id in BOT_ADMINS:
         is_admin = True
     elif message.sender_chat and (message.sender_chat.id == OWNER_ID or message.sender_chat.id == message.chat.id):
         is_admin = True
-
-    # --- ဒီနေရာမှာ အောက်က code အသစ်ကို အစားထိုးလိုက်ပါ ---
+        
     if not is_admin:
-        # message ပို့တဲ့သူရှိရင် id ကိုယူမယ်၊ မရှိရင် (Channel post ဆိုရင်) Admin လို့ ပြမယ်
         u_id = message.from_user.id if message.from_user else message.chat.id
         u_name = message.from_user.first_name if message.from_user else "Admin"
         
@@ -515,8 +576,7 @@ async def channel_admin_broadcast(client, message):
             parse_mode=enums.ParseMode.HTML
         )
         return
-    # --------------------------------------------------
-    
+        
     target_msg = None
     input_text = message.text.split(None, 1)[1] if len(message.text.split()) > 1 else ""
 
@@ -525,7 +585,6 @@ async def channel_admin_broadcast(client, message):
     elif input_text:
         target_msg = input_text
     else:
-        # Channel forward message ကို ရှာခြင်း
         async for msg in client.get_chat_history(message.chat.id, limit=15):
             if msg.forward_from_chat and msg.forward_from_chat.type == enums.ChatType.CHANNEL:
                 target_msg = msg
@@ -534,7 +593,6 @@ async def channel_admin_broadcast(client, message):
     if not target_msg:
         return await message.reply("Broadcast လုပ်ဖို့ ပစ္စည်း ရှာမတွေ့ပါဘူး။")
 
-    # Database ထဲက Group list ကို ဆွဲထုတ်ခြင်း
     data = await col.find_one({"id": "bot_data"})
     group_ids = data.get("group_ids", []) if data else []
     
@@ -551,7 +609,7 @@ async def channel_admin_broadcast(client, message):
             else:
                 await client.send_message(gid, target_msg, parse_mode=enums.ParseMode.HTML)
             sent += 1
-            await asyncio.sleep(0.5) # Telegram spam မဖြစ်အောင် ခေတ္တစောင့်ခြင်း
+            await asyncio.sleep(0.5)
         except FloodWait as e:
             await asyncio.sleep(e.value)
             if hasattr(target_msg, "forward"):
@@ -570,7 +628,6 @@ async def channel_admin_broadcast(client, message):
 async def show_all_cmds(client, message):
     user = message.from_user
     
-    # အခြေခံအားလုံး သုံးလို့ရတဲ့ Command များ
     help_text = (
         "<b>📜 Bot Commands List</b>\n"
         "━━━━━━━━━━━━━━━━━━━━\n\n"
@@ -580,7 +637,6 @@ async def show_all_cmds(client, message):
         "• <code>/show</code> - Command များအားလုံးကြည့်ရန်\n\n"
     )
 
-    # Admin သီးသန့် Command များ (Admin ဖြစ်မှ မြင်ရအောင် စစ်ထားတယ်)
     if user.id in BOT_ADMINS:
         help_text += (
             "<b>📢 Call & mentions:</b>\n"
@@ -600,6 +656,10 @@ async def show_all_cmds(client, message):
             "• <code>/setname [နာမည်]</code> - နာမည်ပြောင်းရန် (Reply)\n"
             "• <code>/wc [စာသား]</code> - Welcome စာပြင်ရန်\n"
             "• <code>/gb [စာသား]</code> - Goodbye စာပြင်ရန်\n\n"
+            "• <code>/bc [reply]</code> - broadcast လုပ်ရန်\n\n"
+            "• <code>/addreply [text]</code> - auto reply စာထည့်ရန်\n\n"
+            "• <code>/dlreply [text]</code> - auto replyစာဖြတ်ရန်\n\n"
+            "• <code>/replylist</code> - auto reply စာများကြည့်ရန်\n\n"
             "<b>👑 Owner Only:</b>\n"
             "• <code>/addadmin</code> | <code>/dladmin</code> - Admin ခန့်ရန်/ဖြုတ်ရန် (Reply)\n"
             "━━━━━━━━━━━━━━━━━━━━"
@@ -616,7 +676,7 @@ async def start(client, message):
 
 async def main():
     await app.start()
-    await load_data()  # <--- Bot တက်တာနဲ့ DB ကစာတွေ ပြန်ယူဖို့
+    await load_data()
     print("Bot is Started!")
     await asyncio.Event().wait()
 
