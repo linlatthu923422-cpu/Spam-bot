@@ -3,4 +3,4 @@ tgcrypto==1.2.2
 motor
 pymongo
 dnspython
-openai
+google-generativeai
