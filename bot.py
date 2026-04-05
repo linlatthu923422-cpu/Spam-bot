@@ -114,14 +114,17 @@ async def handle_auto_reply(client, message):
                 await message.reply(res)
 
                 try:
-                    await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
-                except:
                     await client.send_reaction(
                         chat_id=message.chat.id,
                         message_id=message.id,
                         reactions=[enums.ReactionTypeEmoji(emoji=random.choice(REACTION_EMOJIS))]
                     )
-                break
+                except (AttributeError, Exception):
+                    try:
+                        await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
+                    except Exception as re:
+                        print(f"Reaction Final Error: {re}")
+                break 
             except Exception as e:
                 print(f"Reply Error: {e}")
             
