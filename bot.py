@@ -39,7 +39,7 @@ auto_replies = {}
 REACTION_EMOJIS = ["❤️", "🔥", "⚡️", "✨", "🎉", "💯", "🫡", "👾", "💘", "🗿", "🌚"]
 
 async def load_data():
-    global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_texts, goodbye_texts
+    global atk_list, tag_list, custom_names, BOT_ADMINS, welcome_texts, goodbye_texts, auto_replies
     data = await col.find_one({"id": "bot_data"})
     if data:
         atk_list = data.get("atk_list", [])
@@ -119,11 +119,10 @@ async def handle_auto_reply(client, message):
                         message_id=message.id,
                         reactions=[enums.ReactionTypeEmoji(emoji=random.choice(REACTION_EMOJIS))]
                     )
-                except (AttributeError, Exception):
+                except Exception:
                     try:
                         await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
-                    except Exception as re:
-                        print(f"Reaction Final Error: {re}")
+                    except: pass
                 break 
             except Exception as e:
                 print(f"Reply Error: {e}")
@@ -142,7 +141,7 @@ async def auto_save_id_on_command(client, message):
 @app.on_message(filters.new_chat_members & filters.group)
 async def welcome_handler(client, message):
 
-    chat_id = message.chat.id
+    chat_id = str(message.chat.id)
     
     await col.update_one(
         {"id": "bot_data"},
