@@ -1,4 +1,5 @@
 import os
+import openai
 import random
 import asyncio
 from pyrogram import Client, filters, enums
@@ -10,6 +11,8 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)
@@ -101,63 +104,59 @@ async def run_tag_loop(client, chat_id, target_user):
             except Exception:
                 continue
 
+# =================== reply =====================
 @app.on_message(filters.text & filters.group, group=3)
-async def handle_auto_reply(client, message):
+async def handle_combined_reply(client, message):
     if message.text.startswith("/"): 
         return
 
     chat_id = str(message.chat.id)
-    
-    if not ai_status.get(chat_id, False):
-        return
-
-    msg_text = message.text.lower().strip()
-    
-# ================= AUTO REPLY LOGIC =================
-@app.on_message(filters.text & filters.group, group=3)
-async def handle_auto_reply(client, message):
-    if message.text.startswith("/"): 
-        return
-
-    chat_id = message.chat.id
     msg_text = message.text.lower().strip()
 
-    global group_ids
-    if chat_id not in group_ids:
-        group_ids.append(chat_id)
-        await save_data()
-        
+    found_keyword = False
     for keyword in auto_replies:
         if keyword in msg_text:
             try:
                 replies = auto_replies[keyword]
                 res = random.choice(replies) if isinstance(replies, list) else replies
                 await message.reply(res)
-
-                try:
-                    await client.set_reaction(
-                        chat_id=message.chat.id,
-                        message_id=message.id,
-                        emoji=random.choice(REACTION_EMOJIS)
-                    )
-                except Exception as e:
-                    try:
-                        from pyrogram.raw import types, functions
-                        peer = await client.resolve_peer(message.chat.id)
-                        await client.invoke(
-                            functions.messages.SendReaction(
-                                peer=peer,
-                                msg_id=message.id,
-                                reaction=[types.ReactionEmoji(emoticon=random.choice(REACTION_EMOJIS))]
-                            )
-                        )
-                    except Exception as final_err:
-                        print(f"Reaction Final Error: {final_err}")
                 
+                try:
+                    await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
+                except: pass
+                
+                found_keyword = True
                 break
-
             except Exception as e:
-                print(f"Reply Error: {e}")
+                print(f"Manual Reply Error: {e}")
+
+    # --- ၂။ AI Auto Reply (Keyword မတွေ့မှ AI ဆီသွားမယ်) ---
+    if not found_keyword and ai_status.get(chat_id, False):
+        try:
+            response = ai_client.chat.completions.create(
+                model="gpt-3.5-turbo", # သို့မဟုတ် gpt-4
+                messages=[
+                    {"role": "system", "content": "မင်းက မြန်မာလိုပဲ ပြန်ဖြေပေးရမယ့် လူဆိုးလေးတစ်ယောက်လို Bot ဖြစ်တယ်။"},
+                    {"role": "user", "content": message.text}
+                ],
+                max_tokens=150
+            )
+            
+            ai_reply = response.choices[0].message.content
+            if ai_reply:
+                await message.reply(ai_reply)
+                
+                try:
+                    await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
+                except: pass
+                
+        except Exception as ai_err:
+            print(f"OpenAI Error: {ai_err}")
+
+    global group_ids
+    if message.chat.id not in group_ids:
+        group_ids.append(message.chat.id)
+        await save_data()
             
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
@@ -675,12 +674,12 @@ async def control_ai(client, message):
     
     if cmd == "on":
         ai_status[chat_id] = True
-        await save_data() # Database ထဲ သိမ်းမယ်
-        await message.reply("✅ AI Auto Reply ကို ဖွင့်လိုက်ပါပြီ သခင်လေး Johan။")
+        await save_data()
+        await message.reply("✅ AI Reply Mode: ON ")
     else:
         ai_status[chat_id] = False
-        await save_data() # Database ထဲ သိမ်းမယ်
-        await message.reply("❌ AI Auto Reply ကို ပိတ်လိုက်ပါပြီ။")
+        await save_data()
+        await message.reply("❌ AI Reply Mode: OFF ")
         
 # ================= Helps =================
 @app.on_message(filters.command("show") & filters.group)
