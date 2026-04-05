@@ -120,15 +120,25 @@ async def handle_auto_reply(client, message):
                 await message.reply(res)
 
                 try:
-                    await client.send_reaction(
-                        chat_id=message.chat.id,
-                        message_id=message.id,
-                        emoji=random.choice(REACTION_EMOJIS)
+                    from pyrogram.raw import types, functions
+                    emoji = random.choice(REACTION_EMOJIS)
+                    
+                    peer = await client.resolve_peer(message.chat.id)
+                    await client.invoke(
+                        functions.messages.SendReaction(
+                            peer=peer,
+                            msg_id=message.id,
+                            reaction=[types.ReactionEmoji(emoticon=emoji)]
+                        )
                     )
-                except Exception as re:
-                    print(f"Reaction Error: {re}")
+                except Exception:
+                    try:
+                        await client.send_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
+                    except Exception as re:
+                        print(f"Reaction Final Error: {re}")
                 
                 break
+
             except Exception as e:
                 print(f"Reply Error: {e}")
             
