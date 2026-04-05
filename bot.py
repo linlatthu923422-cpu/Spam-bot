@@ -99,24 +99,27 @@ async def run_tag_loop(client, chat_id, target_user):
                 continue
 
 # ================= AUTO REPLY LOGIC =================
-@app.on_message(filters.text & filters.group, group=1)
+@app.on_message(filters.text & filters.group, group=3)
 async def handle_auto_reply(client, message):
-    if message.text.startswith("/"): return
+    if message.text.startswith("/"): 
+        return
 
     msg_text = message.text.lower().strip()
     
-    if msg_text in auto_replies:
-        try:
-            random_reply = random.choice(auto_replies[msg_text])
-            await message.reply(random_reply)
+    for keyword, replies in auto_replies.items():
+        if keyword in msg_text:
+            try:
+                random_reply = random.choice(replies)
+                await message.reply(random_reply)
 
-            await client.send_reaction(
-                chat_id=message.chat.id,
-                message_id=message.id,
-                emoji=random.choice(REACTION_EMOJIS)
-            )
-        except Exception:
-            pass
+                await client.send_reaction(
+                    chat_id=message.chat.id,
+                    message_id=message.id,
+                    reactions=[enums.ReactionTypeEmoji(emoji=random.choice(REACTION_EMOJIS))]
+                )
+                break
+            except Exception as e:
+                print(f"Error: {e}")
             
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
