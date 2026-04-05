@@ -109,17 +109,22 @@ async def handle_auto_reply(client, message):
     for keyword, replies in auto_replies.items():
         if keyword in msg_text:
             try:
-                random_reply = random.choice(replies)
+                replies = auto_replies[keyword]
+                if isinstance(replies, list):
+                    random_reply = random.choice(replies)
+                else:
+                    random_reply = replies
+                
                 await message.reply(random_reply)
 
                 await client.send_reaction(
                     chat_id=message.chat.id,
                     message_id=message.id,
-                    reactions=[enums.ReactionTypeEmoji(emoji=random.choice(REACTION_EMOJIS))]
+                    emoji=random.choice(REACTION_EMOJIS)
                 )
-                break
+                break 
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Auto Reply Error: {e}")
             
 # =================== regexd ===================
 @app.on_message(filters.regex(r"^/") & filters.group, group=-1)
