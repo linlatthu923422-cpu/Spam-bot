@@ -104,8 +104,14 @@ async def handle_auto_reply(client, message):
     if message.text.startswith("/"): 
         return
 
+    chat_id = massage.chat.id
     msg_text = message.text.lower().strip()
-    
+
+    global group_ids
+    if chat_id not in group_ids:
+        group_ids.append(chat_id)
+        await save_data()
+        
     for keyword in auto_replies:
         if keyword in msg_text:
             try:
