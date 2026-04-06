@@ -145,7 +145,10 @@ async def handle_combined_reply(client, message):
     # --- ၂။ AI Auto Reply (Keyword မတွေ့မှ AI ဆီသွားမယ်) ---
     if not found_keyword and ai_status.get(chat_id, False):
         try:
-            # Groq ရဲ့ အမြန်ဆုံး 70B Model ကို သုံးမယ်
+
+            user_name = message.from_user.first_name if message.from_user else "Stranger"
+            user_id = message.from_user.id if message.from_user else 0
+            
             completion = groq_client.chat.completions.create(
                 model="llama-3-70b-versatile",
                 messages=[
