@@ -1,7 +1,8 @@
 import os
 import random
 import asyncio
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,7 +12,7 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+client_ai = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)
@@ -35,9 +36,13 @@ Rules:
 """
 
 # Gemini 1.5 Flash Model ကို သုံးမယ် (အမြန်ဆုံးနဲ့ မြန်မာစာ အပီပြင်ဆုံး)
-gemini_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=S_INSTRUCTION
+response = client_ai.models.generate_content(
+    model="gemini-1.5-flash",
+    config=types.GenerateContentConfig(
+        system_instruction=S_INSTRUCTION, # ဒီမှာ Instruction ကို ပြန်သုံးထားပါတယ်
+        temperature=0.8
+    ),
+    contents=f"User: {user_name} says: {message.text}"
 )
 
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -149,28 +154,29 @@ async def handle_combined_reply(client, message):
             except Exception as e:
                 print(f"Manual Reply Error: {e}")
 
-    # --- ၂။ AI Auto Reply (Keyword မတွေ့မှ AI ဆီသွားမယ်) ---
+    # --- ၂။ Gemini AI Auto Reply (SDK အသစ် version) ---
     if not found_keyword and ai_status.get(chat_id, False):
         try:
-            # User အချက်အလက်ယူခြင်း
             user_name = message.from_user.first_name if message.from_user else "Stranger"
             user_id = message.from_user.id
             
-            # Gemini ဆီကို Context ပို့ပြီး အဖြေတောင်းမယ်
-            # User ID ပါပို့ပေးမှ AI က သခင်လေးကို ခွဲခြားသိမှာပါ
-            prompt = f"User Name: {user_name}, User ID: {user_id} ကနေပြောတာက - {message.text}"
+            # Gemini အသစ်နဲ့ အဖြေတောင်းခြင်း
+            response = client_ai.models.generate_content(
+                model="gemini-1.5-flash",
+                config=types.GenerateContentConfig(
+                    system_instruction=S_INSTRUCTION,
+                    temperature=0.8
+                ),
+                contents=f"User: {user_name} (ID: {user_id}) says: {message.text}"
+            )
             
-            response = gemini_model.generate_content(prompt)
             ai_reply = response.text
-            
             if ai_reply:
                 await message.reply(ai_reply)
                 
-                # Reaction လေးပါ ပေးမယ်
                 try:
                     await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
-                except: 
-                    pass
+                except: pass
                 
         except Exception as ai_err:
             print(f"Gemini Error: {ai_err}")
