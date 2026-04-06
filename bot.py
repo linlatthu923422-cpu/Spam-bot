@@ -156,7 +156,7 @@ async def handle_combined_reply(client, message):
             response = client_ai.models.generate_content(
                 model="gemini-1.5-flash", 
                 config=types.GenerateContentConfig(
-                    system_instruction=S_INSTRUCTION,
+                    system_instructions=S_INSTRUCTION,
                     temperature=0.8,
 
                     http_options={'api_version': 'v1'}
