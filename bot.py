@@ -158,8 +158,8 @@ async def handle_combined_reply(client, message):
                 config=types.GenerateContentConfig(
                     system_instruction=S_INSTRUCTION,
                     temperature=0.8,
-                    # တကယ်လို့ 404 ထပ်တက်ရင် ဒီစာကြောင်းလေး ထည့်ပေးပါ
-                    # api_version="v1" 
+
+                    http_options={'api_version': 'v1'}
                 ),
                 contents=f"User: {user_name} (ID: {user_id}) says: {message.text}"
             )
