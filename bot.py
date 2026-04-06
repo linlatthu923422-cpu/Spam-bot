@@ -151,22 +151,34 @@ async def handle_combined_reply(client, message):
             user_name = message.from_user.first_name if message.from_user else "Stranger"
             user_id = message.from_user.id
             
-            # Gemini SDK အသစ်အတွက် အမှန်ကန်ဆုံး Configuration
+            # ၁။ Rule တွေနဲ့ User မေးခွန်းကို တစ်ခါတည်း ပေါင်းလိုက်တာပါ (Combined Prompt)
+            # အပေါ်က S_INSTRUCTION စာသားကြီးကို ဒီထဲမှာ လာပေါင်းထည့်လိုက်မယ်
+            combined_prompt = f"""
+{S_INSTRUCTION}
+
+အထက်ပါ Rules များအတိုင်း အောက်ပါ User ကို ပြန်ဖြေပေးပါ။
+User Name: {user_name}
+User ID: {user_id}
+Message: {message.text}
+"""
+
+            # ၂။ generate_content ထဲမှာ contents တစ်ခုတည်းပဲ ပို့တော့မယ်
+            # System Instruction ဆိုတဲ့ field ကို လုံးဝ ဖြုတ်ပစ်လိုက်ပါပြီ
             response = client_ai.models.generate_content(
                 model="gemini-1.5-flash",
+                contents=combined_prompt,
                 config=types.GenerateContentConfig(
-                    system_instruction=S_INSTRUCTION, # ဒီမှာ s ဖြုတ်လိုက်ပါပြီ
                     temperature=0.8,
                     http_options={'api_version': 'v1'}
-                ),
-                contents=f"User: {user_name} (ID: {user_id}) says: {message.text}"
+                )
             )
             
             if response and response.text:
                 await message.reply(response.text)
                 
                 try:
-                    await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
+                    # သခင်လေး ကြိုက်တဲ့ Reaction လေးတွေ ပြန်ထည့်ပေးထားတယ်
+                    await message.react(random.choice(["🔥", "⚡", "😈", "💀"]))
                 except: pass
                 
         except Exception as ai_err:
