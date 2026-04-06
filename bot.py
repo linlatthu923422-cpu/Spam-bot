@@ -165,7 +165,7 @@ Message: {message.text}
             # ၂။ generate_content ထဲမှာ contents တစ်ခုတည်းပဲ ပို့တော့မယ်
             # System Instruction ဆိုတဲ့ field ကို လုံးဝ ဖြုတ်ပစ်လိုက်ပါပြီ
             response = client_ai.models.generate_content(
-                model="gemini-1.5-flash",
+                model="publishers/google/models/gemini-1.5-flash",
                 contents=combined_prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.8,
