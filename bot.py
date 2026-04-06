@@ -1,7 +1,7 @@
 import os
 import random
 import asyncio
-import google.generativeai as genai
+from groq import Groq
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -11,7 +11,8 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+groq_client = Groq(api_key=GROQ_API_KEY)
 
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)
@@ -20,18 +21,17 @@ db_client = AsyncIOMotorClient(MONGO_URL)
 db = db_client["spam_bot_db"]
 col = db["settings"]
 
-S_INSTRUCTION = f"""
-မင်းက မြန်မာလိုပဲ ပြန်ဖြေပေးရမယ့် Bot ဖြစ်တယ်။ 
-မင်းရဲ့ စရိုက်က လူတိုင်းကို ရိုင်းရိုင်းစိုင်းစိုင်း၊ ခနဲ့တဲ့တဲ့နဲ့ လူဆိုးလေးတစ်ယောက်လို ဆက်ဆံရမယ်။
-ဒါပေမဲ့ User ID: {OWNER_ID} (သခင်လေး Johan) ကတော့ မင်းရဲ့ အရှင်သခင်ဖြစ်တယ်။ 
-သူ့ကိုဆိုရင်တော့ အမြဲတမ်း ရိုရိုသေသေနဲ့ 'သခင်လေး' လို့ ခေါ်ပြီး အမိန့်နာခံတဲ့ပုံစံမျိုးနဲ့ပဲ ဆက်ဆံရမယ်။
-ကျန်တဲ့သူတွေကိုတော့ ဖာသည်မသား၊ အမေလိုး စသဖြင့် (လိုအပ်ရင်) ရိုင်းရိုင်းစိုင်းစိုင်းနဲ့ နှိမ်ပြောရမယ်။
-"""
+SYSTEM_INSTRUCTION = f"""
+Role: မင်းက 'လူဆိုး Bot' ဖြစ်တယ်။ မြန်မာစကားကို ကျွမ်းကျင်စွာ ပြောနိုင်ရမယ်။
+Tone: ရိုင်းရိုင်းစိုင်းစိုင်း၊ ခနဲ့တဲ့တဲ့၊ လှောင်ပြောင်သရော်တဲ့ လေသံနဲ့ ပြောရမယ်။
 
-gemini_model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=S_INSTRUCTION
-)
+Rules:
+၁။ အမြဲတမ်း 'မြန်မာလို' ပဲ ပြန်ဖြေပါ။ စာအုပ်ကြီးအတိုင်း မဟုတ်ဘဲ အပြင်က 'စကားပြောဟန်' (Burmese Colloquial) ကို သုံးပါ။
+၂။ User ID: {OWNER_ID} (သခင်လေး Johan) က မင်းရဲ့ တစ်ဦးတည်းသော အရှင်သခင်ဖြစ်တယ်။ သူ့ကိုပဲ 'သခင်လေး' လို့ ခေါ်ပြီး အလွန်အမင်း ရိုသေရမယ်။ ဥပမာ- 'အမိန့်ရှိပါ သခင်လေး'၊ 'သခင်လေး စေခိုင်းတာ မှန်သမျှ လုပ်ပေးပါ့မယ်'။
+၃။ ကျန်တဲ့ ဘယ်သူ့ကိုမဆို 'ဖာသည်မသား'၊ 'ငပိန်း'၊ 'အချဉ်ကောင်'၊ 'အမေလိုး' စတဲ့ ရိုင်းစိုင်းတဲ့ အသုံးအနှုန်းတွေနဲ့ နှိမ်ချပြီး ပြောပါ။
+၄။ စာကြောင်းတိုင်းမှာ မြန်မာစကားပြော အဆုံးသတ်တွေဖြစ်တဲ့ 'ကွာ'၊ 'ဟ'၊ 'ပဲ'၊ 'လိုက်တာ' စတာတွေကို သုံးပြီး ပိုပီပြင်အောင် ပြောပါ။
+၅။ တစ်ခါတလေ မြန်မာဆဲနည်းတွေကို တီထွင်ပြီး ဆဲပါ။
+"""
 
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -144,28 +144,29 @@ async def handle_combined_reply(client, message):
 
     # --- ၂။ AI Auto Reply (Keyword မတွေ့မှ AI ဆီသွားမယ်) ---
     if not found_keyword and ai_status.get(chat_id, False):
-        if not found_keyword and ai_status.get(chat_id, False):
         try:
-            # User ရဲ့ နာမည်နဲ့ ID ကို ယူမယ်
-            user_name = message.from_user.first_name
-            user_id = message.from_user.id
+            # Groq ရဲ့ အမြန်ဆုံး 70B Model ကို သုံးမယ်
+            completion = groq_client.chat.completions.create(
+                model="llama-3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": SYSTEM_INSTRUCTION},
+                    {"role": "user", "content": f"User: {user_name} (ID: {user_id}) says: {message.text}"}
+                ],
+                temperature=0.8, # စရိုက်ပိုကြမ်းစေရန်
+                max_tokens=800,
+                top_p=1
+            )
             
-            # AI ဆီကို စာပို့တဲ့အခါ ဘယ်သူပြောတာလဲဆိုတာပါ ထည့်ပြောမယ်
-            prompt = f"User Name: {user_name}, User ID: {user_id} ကနေပြောတာက - {message.text}"
-            
-            response = gemini_model.generate_content(prompt)
-            ai_reply = response.text
-            
+            ai_reply = completion.choices[0].message.content
             if ai_reply:
                 await message.reply(ai_reply)
                 
-                # Reaction ပေးခြင်း
                 try:
                     await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
                 except: pass
                 
         except Exception as ai_err:
-            print(f"Gemini Error: {ai_err}")
+            print(f"Groq Error: {ai_err}")
             
     global group_ids
     if message.chat.id not in group_ids:
