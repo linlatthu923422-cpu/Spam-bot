@@ -151,14 +151,12 @@ async def handle_combined_reply(client, message):
             user_name = message.from_user.first_name if message.from_user else "Stranger"
             user_id = message.from_user.id
             
-            # Model နာမည်ကို ဗားရှင်းအပြည့်အစုံ ပြောင်းကြည့်ပါ
-            # 'gemini-1.5-flash' အစား 'models/gemini-1.5-flash' သို့မဟုတ် 'gemini-1.5-flash-001'
+            # Gemini SDK အသစ်အတွက် အမှန်ကန်ဆုံး Configuration
             response = client_ai.models.generate_content(
-                model="gemini-1.5-flash", 
+                model="gemini-1.5-flash",
                 config=types.GenerateContentConfig(
-                    system_instructions=S_INSTRUCTION,
+                    system_instruction=S_INSTRUCTION, # ဒီမှာ s ဖြုတ်လိုက်ပါပြီ
                     temperature=0.8,
-
                     http_options={'api_version': 'v1'}
                 ),
                 contents=f"User: {user_name} (ID: {user_id}) says: {message.text}"
@@ -172,7 +170,6 @@ async def handle_combined_reply(client, message):
                 except: pass
                 
         except Exception as ai_err:
-            # Error ကို ပိုပြီး အသေးစိတ် မြင်ရအောင် ဒီလို ပြင်ထားပါ
             print(f"Gemini Error Detailed: {ai_err}")
             
     global group_ids
