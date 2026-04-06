@@ -12,7 +12,8 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = int(os.getenv("OWNER_ID"))
 MONGO_URL = os.getenv("MONGO_URL")
-client_ai = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client_ai = genai.Client(api_key=GEMINI_API_KEY)
 
 BOT_ADMINS = set()
 BOT_ADMINS.add(OWNER_ID)
@@ -34,16 +35,6 @@ Rules:
 ၆။ အခြေအနေပေါ်မူတည်ပြီး နှစ်သိမ့်ပေးရမယ်။ မေးခွန်းတွေဖြေမယ်။
 ၇။ ရိုင်းဆိုင်းရမယ်။ ဆဲရမယ်။ ဒါပေမဲ့ User ID: {OWNER_ID} (သခင်လေး Johan) ရဲ့အမိန့်ကိုပဲနားထောင်ရမယ်။
 """
-
-# Gemini 1.5 Flash Model ကို သုံးမယ် (အမြန်ဆုံးနဲ့ မြန်မာစာ အပီပြင်ဆုံး)
-response = client_ai.models.generate_content(
-    model="gemini-1.5-flash",
-    config=types.GenerateContentConfig(
-        system_instruction=S_INSTRUCTION, # ဒီမှာ Instruction ကို ပြန်သုံးထားပါတယ်
-        temperature=0.8
-    ),
-    contents=f"User: {user_name} says: {message.text}"
-)
 
 app = Client("atk-bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
