@@ -151,26 +151,29 @@ async def handle_combined_reply(client, message):
             user_name = message.from_user.first_name if message.from_user else "Stranger"
             user_id = message.from_user.id
             
-            # Gemini အသစ်နဲ့ အဖြေတောင်းခြင်း
+            # Model နာမည်ကို ဗားရှင်းအပြည့်အစုံ ပြောင်းကြည့်ပါ
+            # 'gemini-1.5-flash' အစား 'models/gemini-1.5-flash' သို့မဟုတ် 'gemini-1.5-flash-001'
             response = client_ai.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-1.5-flash", 
                 config=types.GenerateContentConfig(
                     system_instruction=S_INSTRUCTION,
-                    temperature=0.8
+                    temperature=0.8,
+                    # တကယ်လို့ 404 ထပ်တက်ရင် ဒီစာကြောင်းလေး ထည့်ပေးပါ
+                    # api_version="v1" 
                 ),
                 contents=f"User: {user_name} (ID: {user_id}) says: {message.text}"
             )
             
-            ai_reply = response.text
-            if ai_reply:
-                await message.reply(ai_reply)
+            if response and response.text:
+                await message.reply(response.text)
                 
                 try:
                     await client.set_reaction(message.chat.id, message.id, random.choice(REACTION_EMOJIS))
                 except: pass
                 
         except Exception as ai_err:
-            print(f"Gemini Error: {ai_err}")
+            # Error ကို ပိုပြီး အသေးစိတ် မြင်ရအောင် ဒီလို ပြင်ထားပါ
+            print(f"Gemini Error Detailed: {ai_err}")
             
     global group_ids
     if message.chat.id not in group_ids:
