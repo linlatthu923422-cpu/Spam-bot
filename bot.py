@@ -150,7 +150,7 @@ async def handle_combined_reply(client, message):
             user_id = message.from_user.id if message.from_user else 0
             
             completion = groq_client.chat.completions.create(
-                model="llama-3-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": SYSTEM_INSTRUCTION},
                     {"role": "user", "content": f"User: {user_name} (ID: {user_id}) says: {message.text}"}
